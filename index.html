@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIGMAN Varejo</title>
+<link rel="stylesheet" href="css/sigman.css">
+</head>
+<body>
+
+<!-- ═══════════════════════ LOADING ═══════════════════════ -->
+<div id="loading-screen" style="display:flex;align-items:center;justify-content:center;height:100vh">
+  <span>Carregando...</span>
+</div>
+
+<!-- ═══════════════════════ LOGIN ═══════════════════════ -->
+<div id="login-screen">
+  <div class="card" style="width:340px;position:relative;z-index:1">
+    <div class="card-t">SIGMAN Varejo</div>
+    <div id="al-login" class="alert"></div>
+    <label>Login</label>
+    <input id="lg-login" type="text" autocomplete="username">
+    <label>Senha</label>
+    <input id="lg-senha" type="password" autocomplete="current-password"
+           onkeydown="if(event.key==='Enter') tentarLogin()">
+    <button class="btn btn-p btn-fl" onclick="tentarLogin()">Entrar</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════ APP SHELL ═══════════════════════ -->
+<div id="app">
+  <aside class="sb">
+    <div class="sb-hd">
+      <div class="sb-brand">
+        <div class="sb-sig">SIGMAN <em>Varejo</em></div>
+      </div>
+    </div>
+    <nav class="sb-nav" id="sb-nav"></nav>
+    <div class="sb-ft">
+      <div class="sb-usr">
+        <div class="u-av" id="u-av"></div>
+        <div class="u-info">
+          <div class="u-nm" id="u-nm"></div>
+          <div class="u-rl" id="u-rl"></div>
+        </div>
+      </div>
+      <button class="btn btn-gh btn-sm btn-fl" style="margin-top:8px" onclick="fazerLogout()">Sair</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="tb">
+      <div class="tb-title">SIGMAN Varejo</div>
+      <div class="tb-r"><span class="tb-stat" id="status-fila"></span></div>
+    </div>
+    <div class="cont">
+      <div id="offline-banner"></div>
+      <div id="pg-dashboard" class="pg"></div>
+      <div id="pg-fila-chamados" class="pg"></div>
+      <div id="pg-sites" class="pg"></div>
+      <div id="pg-usuarios" class="pg"></div>
+      <div id="pg-solicitacao" class="pg"></div>
+      <div id="pg-minhas-solicitacoes" class="pg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ MODAIS (fora do #app — precisam
+     renderizar mesmo com #app escondido, ex: troca de senha
+     obrigatória logo após o login) ═══════════════════════ -->
+
+<div id="m-troca-senha-obrigatoria" class="mb">
+  <div class="modal" style="max-width:340px">
+    <div class="card-t">Defina sua nova senha</div>
+    <p style="color:var(--txt3);font-size:13px">
+      Sua senha foi resetada. Defina uma senha nova antes de continuar —
+      só você vai saber essa senha depois disso, nem o admin.
+    </p>
+    <label>Nova senha</label>
+    <input id="tso-nova" type="password">
+    <label>Confirmar nova senha</label>
+    <input id="tso-confirma" type="password">
+    <button class="btn btn-p btn-fl" onclick="confirmarTrocaSenhaObrigatoria()">Confirmar</button>
+  </div>
+</div>
+
+<div id="m-fechar-chamado" class="mb">
+  <div class="modal" style="max-width:400px">
+    <div class="card-t">Concluir chamado</div>
+    <input type="hidden" id="fch-id">
+    <label>O que foi feito</label>
+    <textarea id="fch-descricao" placeholder="Descreva o serviço executado..."></textarea>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-p" onclick="salvarFechamentoChamado()">Concluir</button>
+      <button class="btn btn-gh" onclick="closeM('m-fechar-chamado')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div id="m-novo-usuario" class="mb">
+  <div class="modal" style="max-width:380px">
+    <div class="card-t">Novo Usuário</div>
+    <label>Login</label>
+    <input id="nu-login" type="text">
+    <label>Nome</label>
+    <input id="nu-nome" type="text">
+    <label>Perfil</label>
+    <select id="nu-tipo">
+      <option value="">Selecione...</option>
+      <option value="admin">Administração</option>
+      <option value="gerente_loja">Gerente de Loja</option>
+      <option value="manutentor">Manutenção</option>
+    </select>
+    <label>Sites (separar por vírgula, ex: 1004,1017)</label>
+    <input id="nu-sites" type="text">
+    <label>Cargo</label>
+    <input id="nu-cargo" type="text">
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-p" onclick="salvarNovoUsuario()">Salvar</button>
+      <button class="btn btn-gh" onclick="closeM('m-novo-usuario')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div id="m-novo-site" class="mb">
+  <div class="modal" style="max-width:340px">
+    <div class="card-t">Nova Loja</div>
+    <label>Código</label>
+    <input id="ns-codigo" type="text" placeholder="ex: 1030">
+    <label>Nome</label>
+    <input id="ns-nome" type="text" placeholder="ex: NOVO ENDEREÇO">
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-p" onclick="salvarNovoSite()">Salvar</button>
+      <button class="btn btn-gh" onclick="closeM('m-novo-site')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ SCRIPTS ═══════════════════════ -->
+<!-- Ordem importa: core.js precisa vir antes de tudo que usa STATE/apiGet/apiPost -->
+<script src="js/core.js"></script>
+<script src="js/helpers.js"></script>
+<script src="js/modais-helpers.js"></script>
+<script src="js/utils-offline.js"></script>
+<script src="js/ui-shell.js"></script>
+<script src="js/chamados.js"></script>
+<script src="js/usuarios.js"></script>
+<script src="js/sites.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>
