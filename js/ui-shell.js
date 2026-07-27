@@ -17,12 +17,12 @@ const LABELS_MENU = {
 };
 
 const RENDER_POR_PAGINA = {
-  dashboard: renderDashboard,
-  'fila-chamados': renderFilaChamados,
-  sites: renderSites,
-  usuarios: renderUsuarios,
-  solicitacao: renderSolicitacao,
-  'minhas-solicitacoes': renderMinhasSolicitacoes
+  dashboard: 'renderDashboard',
+  'fila-chamados': 'renderFilaChamados',
+  sites: 'renderSites',
+  usuarios: 'renderUsuarios',
+  solicitacao: 'renderSolicitacao',
+  'minhas-solicitacoes': 'renderMinhasSolicitacoes'
 };
 
 function renderShell() {
@@ -50,8 +50,8 @@ function mostrarPagina(hash) {
   if (!pg) { console.warn('Página não implementada:', hash); return; }
   pg.classList.add('on');
 
-  const renderFn = RENDER_POR_PAGINA[hash];
-  if (renderFn) renderFn();
+  const nomeFn = RENDER_POR_PAGINA[hash];
+  if (nomeFn && typeof window[nomeFn] === 'function') window[nomeFn]();
 }
 
 function mostrarTelaLogin() {
