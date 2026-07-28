@@ -5,7 +5,7 @@
    principal no index.html.
    ══════════════════════════════════════════════════════════════════ */
 
-const API_URL = 'https://script.google.com/macros/s/AKfycbwzcntvx4_QfBYotW2Sz2H8TiwprqkmAyWolYlbIeCfTR2Uhj2VIgVC7Mun1mTaFXohuA/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbwxVCk6ad9N4PfUY9xZeft3g1NjKYq3135ig-4klTizLr0mAQ6Nr7u4w1-3U3V2_LIE6g/exec';
 const USE_API = true; // false = modo offline (só localStorage)
 const POLL_MS = 180000; // Atualização automática a cada 3 minutos
 const CACHE_TTL_MS = 180000; // TTL do readAll: só busca novamente após 3 min
