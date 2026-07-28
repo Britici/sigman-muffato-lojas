@@ -10,93 +10,6 @@ const USE_API = true; // false = modo offline (só localStorage)
 const POLL_MS = 180000; // Atualização automática a cada 3 minutos
 const CACHE_TTL_MS = 180000; // TTL do readAll: só busca novamente após 3 min
 
-// ══════════════════════════════════════════════════════════════════════
-// TEMPLATE DE INSPEÇÃO DIÁRIA (Equipamentos por Sala)
-// ══════════════════════════════════════════════════════════════════════
-const INSP_TMPL = [
-  {"sala":"UTILIDADES", "equips":[{"id":"DISJUNTORES","nome":"DISJUNTORES CCM","subs":[]}]},
-  {"sala":"PIZZA", "equips":[{"id":"PIZZA_LINHA","nome":"LINHA DE PRODUÇÃO","subs":[]}]},
-  {"sala":"LÁCTEOS", "equips":[
-    {"id":"LACTEOS_W905","nome":"FATIADORA WEBER 905","subs":[]},
-    {"id":"LACTEOS_ULMA","nome":"TERMOFORMADORA ULMA","subs":[
-      {"id":"LACTEOS_ULMA_VAC","nome":"TESTE DE VÁCUO"},
-      {"id":"LACTEOS_ULMA_IMP","nome":"TESTE DE IMPRESSORA"}
-    ]}
-  ]},
-  {"sala":"CÁRNEOS", "equips":[
-    {"id":"CARNEOS_W405","nome":"FATIADORA WEBER 405","subs":[]},
-    {"id":"CARNEOS_ULMA","nome":"TERMOFORMADORA ULMA","subs":[
-      {"id":"CARNEOS_ULMA_VAC","nome":"TESTE DE VÁCUO"},
-      {"id":"CARNEOS_ULMA_IMP","nome":"TESTE DE IMPRESSORA"}
-    ]}
-  ]},
-  {"sala":"DEFUMADOS", "equips":[
-    {"id":"DEFUM_ULMA","nome":"TERMOFORMADORA ULMA","subs":[
-      {"id":"DEFUM_ULMA_VAC","nome":"TESTE DE VÁCUO"},
-      {"id":"DEFUM_ULMA_IMP","nome":"TESTE DE IMPRESSORA"}
-    ]}
-  ]},
-  {"sala":"BACALHAU", "equips":[
-    {"id":"BAC_SERRA","nome":"SERRA FITA MONTEMIL","subs":[]},
-    {"id":"BAC_ULMA","nome":"TERMOFORMADORA ULMA","subs":[
-      {"id":"BAC_ULMA_VAC","nome":"TESTE DE VÁCUO"},
-      {"id":"BAC_ULMA_IMP","nome":"TESTE DE IMPRESSORA"}
-    ]}
-  ]},
-  {"sala":"LINGUIÇAS", "equips":[
-    {"id":"LING_ELEV","nome":"ELEVADOR SULMAQ","subs":[]},
-    {"id":"LING_HAND","nome":"EMBUTIDEIRA HANDTMANN VF 612","subs":[]},
-    {"id":"LING_ULMA","nome":"TERMOFORMADORA ULMA","subs":[
-      {"id":"LING_ULMA_VAC","nome":"TESTE DE VÁCUO"},
-      {"id":"LING_ULMA_IMP","nome":"TESTE DE IMPRESSORA"}
-    ]}
-  ]},
-  {"sala":"SALMOURAS", "equips":[
-    {"id":"SALM_BAL","nome":"BALANÇA","subs":[]},
-    {"id":"SALM_EKO","nome":"MISTURADOR DE MASSA EKOMEX","subs":[]},
-    {"id":"SALM_MAX","nome":"MOEDOR MAXMAC","subs":[]},
-    {"id":"SALM_TUM","nome":"TUMBLER HENNEKEN","subs":[]},
-    {"id":"SALM_INJ","nome":"INJETORA HENNEKEN","subs":[]},
-    {"id":"SALM_SAL","nome":"SALMOURA HENNEKEN","subs":[]}
-  ]},
-  {"sala":"TEMPERADOS", "equips":[
-    {"id":"TEMP_DVAC","nome":"DUPLAVAC SELOVAC","subs":[]},
-    {"id":"TEMP_TUM","nome":"TUMBLER MAXMAC","subs":[]},
-    {"id":"TEMP_ULMA","nome":"TERMOFORMADORA ULMA","subs":[
-      {"id":"TEMP_ULMA_VAC","nome":"TESTE DE VÁCUO"},
-      {"id":"TEMP_ULMA_IMP","nome":"TESTE DE IMPRESSORA"}
-    ]}
-  ]},
-  {"sala":"PORCIONAMENTO", "equips":[
-    {"id":"PORC_FAT","nome":"FATIADORA DADAUX","subs":[]},
-    {"id":"PORC_ULMA","nome":"TERMOFORMADORA ULMA","subs":[
-      {"id":"PORC_ULMA_VAC","nome":"TESTE DE VÁCUO"},
-      {"id":"PORC_ULMA_IMP","nome":"TESTE DE IMPRESSORA"}
-    ]}
-  ]},
-  {"sala":"CORREDOR PORCIONAMENTO", "equips":[{"id":"CORR_BAL","nome":"BALANÇA","subs":[]}]},
-  {"sala":"CARNE MOÍDA", "equips":[
-    {"id":"CM_MOE","nome":"MISTURADOR DE MASSA EKOMEX","subs":[]},
-    {"id":"CM_HAND","nome":"EMBUTIDEIRA HANDTMANN VF 620","subs":[]},
-    {"id":"CM_GMD","nome":"PORCIONADORA HANDTMANN GMD 99-2","subs":[]},
-    {"id":"CM_WS","nome":"SISTEMA DE PESAGEM HADTMANN WS 910","subs":[]},
-    {"id":"CM_JA","nome":"ESTEIRA TRANSPORTADORA JA","subs":[]},
-    {"id":"CM_ULMA","nome":"TERMOFORMADORA ULMA","subs":[
-      {"id":"CM_ULMA_VAC","nome":"TESTE DE VÁCUO"},
-      {"id":"CM_ULMA_IMP","nome":"TESTE DE IMPRESSORA"}
-    ]}
-  ]},
-  {"sala":"DESOSSA", "equips":[
-    {"id":"DES_SERRA3","nome":"SERRA FITA ESTEIRA 3","subs":[]},
-    {"id":"DES_SERRACIRC","nome":"SERRA CIRCULAR","subs":[]},
-    {"id":"DES_ESFOL","nome":"ESFOLIADEIRA ESTEIRA 1","subs":[]},
-    {"id":"DES_CRYO","nome":"EMBALADORA CRYOVAC","subs":[]},
-    {"id":"DES_TUNEL","nome":"TÚNEL DE TERMOENCOLHIMENTO CRYOVAC","subs":[]},
-    {"id":"DES_VENTO","nome":"REMOVEDOR DE UMIDADE CRYOVAC","subs":[]},
-    {"id":"DES_EST","nome":"ESTEIRAS","subs":[]},
-    {"id":"DES_BAL","nome":"BALANÇA","subs":[]}
-  ]}
-];
 
 // ══════════════════════════════════════════════════════════════════════
 // BANCO DE DADOS LOCAL (cache em memória + localStorage)
@@ -393,18 +306,6 @@ async function apiLoadAll(silent = false, force = false) {
     db.solC = max + 1;
   }
 
-  // Inspeções Diárias
-  if (d.historico && d.historico.length) {
-    db.historico = d.historico.slice(0, 100).map(r => ({
-      ts: normStr(r.Data_Hora),
-      user: normStr(r.Usuario),
-      login: normStr(r.Login),
-      acao: normStr(r.Acao),
-      numero: normStr(r.Numero_Ref),
-      detalhe: normStr(r.Detalhe)
-    }));
-  }
-
   // Usuários — Sheets é a fonte de verdade; Senha_Hash do Sheets é usada diretamente.
   // Se o usuário mudou a senha pelo app, a versão local tem prioridade.
   const localUsers = JSON.parse(localStorage.getItem('sigman_users') || '[]');
@@ -512,22 +413,6 @@ async function apiLoadRacs() {
     dataBaixa: normDate(r.Data_Fechamento),
     fechadoPor: normStr(r.Fechado_Por),
     criadoEm: normStr(r.Data_Criacao)
-  }));
-  saveDB();
-}
-
-async function apiLoadManuaisSenhas() {
-  if (!USE_API) return;
-  const json = await apiGet({ action: 'readManuaisSenhas' });
-  if (!json?.ok) return;
-  db.manuaisSenhas = (json.data || []).map(r => ({
-    id: normStr(r.ID),
-    sala: normStr(r.Sala),
-    maquina: normStr(r.Equipamento),
-    manualUrl: normStr(r.Manual_URL),
-    credenciais: (() => { try { return JSON.parse(r.Credenciais || '[]'); } catch { return []; } })(),
-    atualizadoPor: normStr(r.Atualizado_Por),
-    atualizadoEm: normStr(r.Atualizado_Em)
   }));
   saveDB();
 }

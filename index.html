@@ -775,14 +775,9 @@
   <script src="js/os-planejadas.js"></script>
   <script src="js/os-executadas.js"></script>
   <script src="js/abertura-os.js"></script>
-  <script src="js/inspecao.js"></script>
   <script src="js/ativos.js"></script>
   <script src="js/usuarios.js"></script>
-  <script src="js/preventiva.js"></script>
-  <script src="js/racr.js"></script>
-  <script src="js/modulo-compras-solicitacao.js"></script>
-  <script src="js/modulo-compras-acompanhamento.js"></script>
-  <script src="js/manuais-senhas.js"></script>
+
   
 <script>
 // ╔══════════════════════════════════════════════════════════════════╗
@@ -960,30 +955,19 @@ const NAV = [
   { id:'planejadas',     ic:'📅', lbl:'O.S. Planejadas',  dot:true },
   { id:'executadas',     ic:'✅', lbl:'O.S. Executadas'       },
   { id:'abertura',       ic:'🔧', lbl:'Abertura de O.S.'      },
-  { id:'inspecao',       ic:'🔍', lbl:'Inspeção Diária'     },
   { id:'pcm', ic:'📋', lbl:'PCM', sub:[
-      { id:'compras-solicitacao',    ic:'🛒', lbl:'Solicitação de Compras'},
-      { id:'compras-acompanhamento', ic:'📦', lbl:'Acompanhamento de Compras'},
-      { id:'planejamento',           ic:'📋', lbl:'Planejamento de O.S.' },
-      { id:'analise-causa-raiz',     ic:'📊', lbl:'Análise Causa Raiz'},
-      { id:'preventiva',             ic:'🔩', lbl:'Manutenção Preventiva'},      
+      { id:'planejamento',           ic:'📋', lbl:'Planejamento de O.S.' }, 
     ]
   },
   { id:'solicitacao',    ic:'📣', lbl:'Solicitação de O.S.', dot:true },
   { id:'ativos',         ic:'🏭', lbl:'Ativos'                },
   { id:'usuarios',       ic:'👥', lbl:'Usuários'              },
-  { id:'manuais-senhas', ic:'🔐', lbl:'Manuais e Senhas'      },
 ];
 
 const LBLS = {
   dashboard:'Dashboard', planejadas:'O.S. Planejadas', executadas:'O.S. Executadas',
   abertura:'Abertura de O.S.', planejamento:'PCM — Planejamento de O.S.',
-  'analise-causa-raiz':'PCM — Análise de Causa Raiz',
-  solicitacao:'Solicitação de O.S.', inspecao:'Inspeção Diária',
-  ativos:'Ativos', usuarios:'Usuários', 'manuais-senhas':'Manuais e Senhas',
-  preventiva:'PCM — Manutenção Preventiva',
-  'compras-solicitacao':'PCM — Solicitação de Compras',
-  'compras-acompanhamento':'PCM — Acompanhamento de Compras'
+  solicitacao:'Solicitação de O.S.', ativos:'Ativos', usuarios:'Usuários',
 };
 
 let _pcmOpen = true; // PCM submenu aberto por padrão
@@ -1071,33 +1055,11 @@ function showPage(pid) {
   if (pid === 'solicitacao') { renderSol();     apiLoadAll(true).then(renderSol).catch(()=>showToast('Erro ao sincronizar Solicitações.','er')); }
   if (pid === 'ativos')      { renderAtivos();  apiLoadAll(true).then(renderAtivos).catch(()=>showToast('Erro ao sincronizar Ativos.','er')); }
   if (pid === 'usuarios')      renderUsuarios();
-  if (pid === 'inspecao')      { buildInsp(); apiLoadInspecoes().then(buildInsp).catch(()=>{}); }
-  if (pid === 'preventiva')    initPreventiva();
-  if (pid === 'analise-causa-raiz') { renderRACR(); apiLoadRacs().then(renderRACR).catch(()=>{}); }
-  if (pid === 'manuais-senhas') { initManuaisSenhas(); apiLoadManuaisSenhas().then(renderMSLista).catch(()=>{}); }
   if (pid === 'abertura') {
     populateSalas('ab'); sv('ab-dt', today());
     if (CU.tipo !== 'producao') sv('ab-mn', CU.nome);
   }
   if (pid === 'planejamento') { populateSalas('pl'); }
-  if (pid === 'compras-solicitacao') {
-    const salasFormatted = db.salas.map(s => ({ Nome: s, Ativo: 'sim' }));
-    const maquinasFormatted = db.maquinas.map(m => ({ Nome: m.nome, Sala: m.sala, Tag: m.tag, Ativo: 'sim' }));
-    ComprasSolicitacao.render(
-      document.getElementById('pg-compras-solicitacao'),
-      { cache: { salas: salasFormatted, maquinas: maquinasFormatted },
-        user: { Nome: CU.nome, Login: CU.login },
-        gsUrl: API_URL }
-    );
-  }
-  if (pid === 'compras-acompanhamento') {
-    ComprasAcompanhamento.render(
-      document.getElementById('pg-compras-acompanhamento'),
-      { cache: {},
-        user: { Nome: CU.nome, Login: CU.login, Tipo_Acesso: CU.tipo },
-        gsUrl: API_URL }
-    );
-  }
   updateNavDots();
 }
 
