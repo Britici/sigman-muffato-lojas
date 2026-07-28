@@ -1,73 +1,95 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
+  <link rel="icon" href="https://muffatosupermercados.vteximg.com.br/arquivos/muffatosupermercados-favicon-2.ico">
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SIGMAN Varejo</title>
-<link rel="stylesheet" href="css/sigman.css">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes">
+<title>SIGMAN · Varejo</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700;800&family=Barlow+Condensed:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/sigman.css">
 </head>
 <body>
 
-<!-- ═══════════════════════ LOADING ═══════════════════════ -->
-<div id="loading-screen" style="display:flex;align-items:center;justify-content:center;height:100vh">
-  <span>Carregando...</span>
+<div id="loading-screen" style="
+  position:fixed;inset:0;z-index:9999;
+  background:var(--bg);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;
+">
+  <div style="
+    width:44px;height:44px;border-radius:50%;
+    border:3px solid var(--bord);
+    border-top-color:var(--red);
+    animation:spin .8s linear infinite;
+  "></div>
+  <div style="font-family:var(--fw);font-size:15px;color:var(--txt3);font-variant:small-caps;letter-spacing:1px;">Carregando...</div>
 </div>
 
-<!-- ═══════════════════════ LOGIN ═══════════════════════ -->
+<!-- ══ LOGIN ══ -->
 <div id="login-screen">
-  <div class="card" style="width:340px;position:relative;z-index:1">
-    <div class="card-t">SIGMAN Varejo</div>
-    <div id="al-login" class="alert"></div>
-    <label>Login</label>
-    <input id="lg-login" type="text" autocomplete="username">
-    <label>Senha</label>
-    <input id="lg-senha" type="password" autocomplete="current-password"
-           onkeydown="if(event.key==='Enter') tentarLogin()">
-    <button class="btn btn-p btn-fl" onclick="tentarLogin()">Entrar</button>
+ <div class="lbox">
+  <div class="lbrand">
+   <img id="l-logo" src="https://muffatofoods.com.br/assets/images/foods_logo.png" alt="Muffato">
+   <div><div class="lsigman">SIG<em>MAN</em></div><div class="lsub">Varejo</div></div>
   </div>
+  <div class="lalert" id="l-alert"></div>
+  <div id="lf-login">
+   <div class="ltitle">Acesso ao Sistema</div>
+   <div class="fg"><label>Usuário</label><input type="text" id="l-u" placeholder="Login" autocomplete="username" onkeydown="if(event.key==='Enter') document.getElementById('l-p').focus()"></div>
+   <div class="fg"><label>Senha</label><input type="password" id="l-p" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter') tentarLogin()"></div>
+   <button class="btn btn-p btn-fl" onclick="tentarLogin()" style="margin-top:4px">Entrar</button>
+  </div>
+ </div>
 </div>
 
-<!-- ═══════════════════════ APP SHELL ═══════════════════════ -->
+<!-- ══ APP ══ -->
 <div id="app">
-  <aside class="sb">
-    <div class="sb-hd">
-      <div class="sb-brand">
-        <div class="sb-sig">SIGMAN <em>Varejo</em></div>
-      </div>
-    </div>
-    <nav class="sb-nav" id="sb-nav"></nav>
-    <div class="sb-ft">
-      <div class="sb-usr">
-        <div class="u-av" id="u-av"></div>
-        <div class="u-info">
-          <div class="u-nm" id="u-nm"></div>
-          <div class="u-rl" id="u-rl"></div>
-        </div>
-      </div>
-      <button class="btn btn-gh btn-sm btn-fl" style="margin-top:8px" onclick="fazerLogout()">Sair</button>
-    </div>
-  </aside>
-
-  <div class="main">
-    <div class="tb">
-      <div class="tb-title">SIGMAN Varejo</div>
-      <div class="tb-r"><span class="tb-stat" id="status-fila"></span></div>
-    </div>
-    <div class="cont">
-      <div id="offline-banner"></div>
-      <div id="pg-dashboard" class="pg"></div>
-      <div id="pg-fila-chamados" class="pg"></div>
-      <div id="pg-sites" class="pg"></div>
-      <div id="pg-usuarios" class="pg"></div>
-      <div id="pg-solicitacao" class="pg"></div>
-      <div id="pg-minhas-solicitacoes" class="pg"></div>
-    </div>
+ <div class="sb-ov" id="sb-ov" onclick="closeSB()"></div>
+ <aside class="sb" id="sb">
+  <div class="sb-hd">
+   <img class="sb-logo" id="sb-logo" src="https://muffatofoods.com.br/assets/images/foods_logo.png" alt="M">
+   <div class="sb-brand">
+    <div class="sb-sig">SIG<em>MAN</em></div>
+    <div class="sb-sub2">Varejo</div>
+   </div>
   </div>
+  <nav class="sb-nav" id="sb-nav"></nav>
+  <div class="sb-ft">
+   <div class="sb-usr">
+    <div class="u-av" id="u-av">A</div>
+    <div class="u-info">
+     <div class="u-nm" id="u-nm">Usuário</div>
+     <div class="u-rl" id="u-rl"></div>
+    </div>
+   </div>
+  </div>
+ </aside>
+
+ <div class="main">
+  <header class="tb">
+   <button class="tb-tog" onclick="toggleSB()">☰</button>
+   <div class="tb-title" id="tb-t" onclick="location.hash=STATE.sessao.menus[0]" style="cursor:pointer">SIGMAN Varejo</div>
+   <div class="tb-r">
+    <div class="tb-stat" id="tb-stat" style="display:none"></div>
+    <button class="tb-btn" onclick="toggleTheme()" id="th-btn">🌙</button>
+    <button class="tb-btn" onclick="fazerLogout()" title="Sair">⎋</button>
+   </div>
+  </header>
+
+  <main class="cont">
+    <div id="offline-banner"></div>
+    <div id="pg-dashboard" class="pg"></div>
+    <div id="pg-fila-chamados" class="pg"></div>
+    <div id="pg-sites" class="pg"></div>
+    <div id="pg-usuarios" class="pg"></div>
+    <div id="pg-solicitacao" class="pg"></div>
+    <div id="pg-minhas-solicitacoes" class="pg"></div>
+  </main>
+ </div>
 </div>
 
-<!-- ═══════════════════════ MODAIS (fora do #app — precisam
-     renderizar mesmo com #app escondido, ex: troca de senha
-     obrigatória logo após o login) ═══════════════════════ -->
+<!-- ══ MODAIS (fora do #app — precisam renderizar mesmo com #app
+     escondido, ex: troca de senha obrigatória logo após o login) ══ -->
 
 <div id="m-troca-senha-obrigatoria" class="mb">
   <div class="modal" style="max-width:340px">
@@ -76,10 +98,8 @@
       Sua senha foi resetada. Defina uma senha nova antes de continuar —
       só você vai saber essa senha depois disso, nem o admin.
     </p>
-    <label>Nova senha</label>
-    <input id="tso-nova" type="password">
-    <label>Confirmar nova senha</label>
-    <input id="tso-confirma" type="password">
+    <div class="fg"><label>Nova senha</label><input id="tso-nova" type="password"></div>
+    <div class="fg"><label>Confirmar nova senha</label><input id="tso-confirma" type="password"></div>
     <button class="btn btn-p btn-fl" onclick="confirmarTrocaSenhaObrigatoria()">Confirmar</button>
   </div>
 </div>
@@ -88,8 +108,7 @@
   <div class="modal" style="max-width:400px">
     <div class="card-t">Concluir chamado</div>
     <input type="hidden" id="fch-id">
-    <label>O que foi feito</label>
-    <textarea id="fch-descricao" placeholder="Descreva o serviço executado..."></textarea>
+    <div class="fg"><label>O que foi feito</label><textarea id="fch-descricao" placeholder="Descreva o serviço executado..."></textarea></div>
     <div style="display:flex;gap:8px;margin-top:8px">
       <button class="btn btn-p" onclick="salvarFechamentoChamado()">Concluir</button>
       <button class="btn btn-gh" onclick="closeM('m-fechar-chamado')">Cancelar</button>
@@ -100,21 +119,18 @@
 <div id="m-novo-usuario" class="mb">
   <div class="modal" style="max-width:380px">
     <div class="card-t">Novo Usuário</div>
-    <label>Login</label>
-    <input id="nu-login" type="text">
-    <label>Nome</label>
-    <input id="nu-nome" type="text">
-    <label>Perfil</label>
-    <select id="nu-tipo">
-      <option value="">Selecione...</option>
-      <option value="admin">Administração</option>
-      <option value="gerente_loja">Gerente de Loja</option>
-      <option value="manutentor">Manutenção</option>
-    </select>
-    <label>Sites (separar por vírgula, ex: 1004,1017)</label>
-    <input id="nu-sites" type="text">
-    <label>Cargo</label>
-    <input id="nu-cargo" type="text">
+    <div class="fg"><label>Login</label><input id="nu-login" type="text"></div>
+    <div class="fg"><label>Nome</label><input id="nu-nome" type="text"></div>
+    <div class="fg"><label>Perfil</label>
+      <select id="nu-tipo">
+        <option value="">Selecione...</option>
+        <option value="admin">Administração</option>
+        <option value="gerente_loja">Gerente de Loja</option>
+        <option value="manutentor">Manutenção</option>
+      </select>
+    </div>
+    <div class="fg"><label>Sites (separar por vírgula, ex: 1004,1017)</label><input id="nu-sites" type="text"></div>
+    <div class="fg"><label>Cargo</label><input id="nu-cargo" type="text"></div>
     <div style="display:flex;gap:8px;margin-top:8px">
       <button class="btn btn-p" onclick="salvarNovoUsuario()">Salvar</button>
       <button class="btn btn-gh" onclick="closeM('m-novo-usuario')">Cancelar</button>
@@ -125,10 +141,8 @@
 <div id="m-novo-site" class="mb">
   <div class="modal" style="max-width:340px">
     <div class="card-t">Nova Loja</div>
-    <label>Código</label>
-    <input id="ns-codigo" type="text" placeholder="ex: 1030">
-    <label>Nome</label>
-    <input id="ns-nome" type="text" placeholder="ex: NOVO ENDEREÇO">
+    <div class="fg"><label>Código</label><input id="ns-codigo" type="text" placeholder="ex: 1030"></div>
+    <div class="fg"><label>Nome</label><input id="ns-nome" type="text" placeholder="ex: NOVO ENDEREÇO"></div>
     <div style="display:flex;gap:8px;margin-top:8px">
       <button class="btn btn-p" onclick="salvarNovoSite()">Salvar</button>
       <button class="btn btn-gh" onclick="closeM('m-novo-site')">Cancelar</button>
@@ -136,8 +150,9 @@
   </div>
 </div>
 
-<!-- ═══════════════════════ SCRIPTS ═══════════════════════ -->
-<!-- Ordem importa: core.js precisa vir antes de tudo que usa STATE/apiGet/apiPost -->
+<!-- ══ SCRIPTS ══ -->
+<!-- Ordem não é mais crítica (mostrarPagina resolve render* por nome em
+     tempo de execução), mas mantemos core.js primeiro por clareza. -->
 <script src="js/core.js"></script>
 <script src="js/helpers.js"></script>
 <script src="js/modais-helpers.js"></script>

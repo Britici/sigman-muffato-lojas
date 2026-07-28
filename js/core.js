@@ -86,7 +86,7 @@ window.addEventListener('online', reenviarFila);
 async function login(loginStr, senha) {
   const res = await apiGet({ action: 'login', login: loginStr, senha });
   if (!(res && res.ok)) {
-    showToast((res && res.error) || 'Falha no login', 'er');
+    lAlert((res && res.error) || 'Usuário ou senha incorretos.');
     return false;
   }
   STATE.sessao = res.usuario;
@@ -104,6 +104,7 @@ async function login(loginStr, senha) {
 // Ao reabrir o app: entra direto com a sessão em cache (rápido) e
 // revalida contra a planilha em seguida e a cada 3 min.
 async function bootSessao() {
+  loadTheme();
   const cached = localStorage.getItem('sigman_sess');
   if (!cached) {
     mostrarTelaLogin();

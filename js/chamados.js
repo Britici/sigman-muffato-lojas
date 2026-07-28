@@ -29,35 +29,47 @@ function renderSolicitacao() {
       <div class="card-t">Nova Solicitação</div>
       <div id="al-sol" class="alert"></div>
 
-      <label>Site</label>
-      <select id="sol-site" ${sites.length === 1 ? 'disabled' : ''}>${siteOptions}</select>
-
-      <label>Área</label>
-      <select id="sol-area">
-        <option value="">Selecione</option>
-        ${AREAS.map(a => `<option value="${a}">${a}</option>`).join('')}
-      </select>
-
-      <label>Tipo</label>
-      <select id="sol-tipo">
-        <option value="">Selecione...</option>
-        ${TIPOS.map(t => `<option value="${t}">${t}</option>`).join('')}
-      </select>
-
-      <label>Prioridade</label>
-      <select id="sol-prioridade">
-        <option value="">Selecione...</option>
-        ${PRIORIDADES.map(p => `<option value="${p}">${p}</option>`).join('')}
-      </select>
-
-      <label>Descrição do Problema</label>
-      <textarea id="sol-descricao" placeholder="Descreva o problema..."></textarea>
-
-      <label>Foto do Problema (opcional)</label>
-      <div class="photo-zone" id="sol-photo-preview" onclick="document.getElementById('sol-photo-input').click()">
-        <span style="color:var(--txt3)">📷 Clique para anexar foto</span>
+      <div class="fg">
+        <label>Site</label>
+        <select id="sol-site" ${sites.length === 1 ? 'disabled' : ''}>${siteOptions}</select>
       </div>
-      <input type="file" id="sol-photo-input" accept="image/*" style="display:none" onchange="_prepararFotoSolicitacao(this)">
+
+      <div class="fg">
+        <label>Área</label>
+        <select id="sol-area">
+          <option value="">Selecione</option>
+          ${AREAS.map(a => `<option value="${a}">${a}</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="fg">
+        <label>Tipo</label>
+        <select id="sol-tipo">
+          <option value="">Selecione...</option>
+          ${TIPOS.map(t => `<option value="${t}">${t}</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="fg">
+        <label>Prioridade</label>
+        <select id="sol-prioridade">
+          <option value="">Selecione...</option>
+          ${PRIORIDADES.map(p => `<option value="${p}">${p}</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="fg">
+        <label>Descrição do Problema</label>
+        <textarea id="sol-descricao" placeholder="Descreva o problema..."></textarea>
+      </div>
+
+      <div class="fg">
+        <label>Foto do Problema (opcional)</label>
+        <div class="photo-zone" id="sol-photo-preview" onclick="document.getElementById('sol-photo-input').click()">
+          <span style="color:var(--txt3)">📷 Clique para anexar foto</span>
+        </div>
+        <input type="file" id="sol-photo-input" accept="image/*" style="display:none" onchange="_prepararFotoSolicitacao(this)">
+      </div>
 
       <button class="btn btn-p btn-fl" style="margin-top:12px" onclick="salvarSolicitacao()">Enviar Solicitação</button>
     </div>

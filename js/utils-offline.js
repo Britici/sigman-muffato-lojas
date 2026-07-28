@@ -48,7 +48,7 @@ window.addEventListener('DOMContentLoaded', () => setOffline(!navigator.onLine))
 
 // ── INDICADOR DE FILA PENDENTE (topbar) ──
 function atualizarStatusFila() {
-  const el = document.getElementById('status-fila');
+  const el = document.getElementById('tb-stat');
   if (!el) return;
   const filaLen = JSON.parse(localStorage.getItem('sigman_fila') || '[]').length;
   el.textContent = filaLen ? `⏳ ${filaLen} pendente(s)` : '';
