@@ -80,6 +80,7 @@
     <div id="offline-banner"></div>
     <div id="pg-dashboard" class="pg"></div>
     <div id="pg-fila-chamados" class="pg"></div>
+    <div id="pg-planejadas" class="pg"></div>
     <div id="pg-sites" class="pg"></div>
     <div id="pg-usuarios" class="pg"></div>
     <div id="pg-solicitacao" class="pg"></div>
@@ -105,10 +106,18 @@
 </div>
 
 <div id="m-fechar-chamado" class="mb">
-  <div class="modal" style="max-width:400px">
-    <div class="card-t">Concluir chamado</div>
+  <div class="modal" style="max-width:420px">
+    <div class="card-t">Concluir Ordem de Serviço</div>
     <input type="hidden" id="fch-id">
     <div class="fg"><label>O que foi feito</label><textarea id="fch-descricao" placeholder="Descreva o serviço executado..."></textarea></div>
+    <div class="fg">
+      <label>Fotos do serviço (opcional)</label>
+      <div class="photo-zone" id="fch-fotos-drop">
+        <span style="color:var(--txt3)">📷 Clique ou arraste fotos aqui (pode escolher várias)</span>
+        <input type="file" id="fch-fotos-input" accept="image/*" multiple style="display:none">
+      </div>
+      <div id="fch-fotos-preview" style="margin-top:8px;display:flex;flex-wrap:wrap"></div>
+    </div>
     <div style="display:flex;gap:8px;margin-top:8px">
       <button class="btn btn-p" onclick="salvarFechamentoChamado()">Concluir</button>
       <button class="btn btn-gh" onclick="closeM('m-fechar-chamado')">Cancelar</button>
@@ -118,8 +127,8 @@
 
 <div id="m-novo-usuario" class="mb">
   <div class="modal" style="max-width:380px">
-    <div class="card-t">Novo Usuário</div>
-    <div class="fg"><label>Login</label><input id="nu-login" type="text"></div>
+    <div class="card-t" id="mu-titulo">Novo Usuário</div>
+    <div class="fg" id="mu-login-field"><label>Login</label><input id="nu-login" type="text"></div>
     <div class="fg"><label>Nome</label><input id="nu-nome" type="text"></div>
     <div class="fg"><label>Perfil</label>
       <select id="nu-tipo">
@@ -132,7 +141,7 @@
     <div class="fg"><label>Sites (separar por vírgula, ex: 1004,1017)</label><input id="nu-sites" type="text"></div>
     <div class="fg"><label>Cargo</label><input id="nu-cargo" type="text"></div>
     <div style="display:flex;gap:8px;margin-top:8px">
-      <button class="btn btn-p" onclick="salvarNovoUsuario()">Salvar</button>
+      <button class="btn btn-p" onclick="salvarUsuario()">Salvar</button>
       <button class="btn btn-gh" onclick="closeM('m-novo-usuario')">Cancelar</button>
     </div>
   </div>
@@ -140,12 +149,37 @@
 
 <div id="m-novo-site" class="mb">
   <div class="modal" style="max-width:340px">
-    <div class="card-t">Nova Loja</div>
+    <div class="card-t" id="ms-titulo">Nova Loja</div>
     <div class="fg"><label>Código</label><input id="ns-codigo" type="text" placeholder="ex: 1030"></div>
     <div class="fg"><label>Nome</label><input id="ns-nome" type="text" placeholder="ex: NOVO ENDEREÇO"></div>
     <div style="display:flex;gap:8px;margin-top:8px">
-      <button class="btn btn-p" onclick="salvarNovoSite()">Salvar</button>
+      <button class="btn btn-p" onclick="salvarSite()">Salvar</button>
       <button class="btn btn-gh" onclick="closeM('m-novo-site')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div id="m-nova-planejada" class="mb">
+  <div class="modal" style="max-width:400px">
+    <div class="card-t" id="mp-titulo">Nova Planejada</div>
+    <div class="fg"><label>Site</label><select id="pl-site"></select></div>
+    <div class="fg"><label>Área</label><input id="pl-area" type="text" placeholder="ex: CÂMARAS FRIAS"></div>
+    <div class="fg"><label>Tipo</label><input id="pl-tipo" type="text" placeholder="ex: REFRIGERAÇÃO"></div>
+    <div class="fg"><label>Descrição</label><textarea id="pl-descricao" placeholder="O que precisa ser feito periodicamente..."></textarea></div>
+    <div class="fg"><label>Periodicidade</label>
+      <select id="pl-periodicidade">
+        <option value="">Selecione...</option>
+        <option value="Semanal">Semanal</option>
+        <option value="Mensal">Mensal</option>
+        <option value="Trimestral">Trimestral</option>
+        <option value="Semestral">Semestral</option>
+        <option value="Anual">Anual</option>
+      </select>
+    </div>
+    <div class="fg"><label>Próxima data</label><input id="pl-data" type="date"></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-p" onclick="salvarPlanejada()">Salvar</button>
+      <button class="btn btn-gh" onclick="closeM('m-nova-planejada')">Cancelar</button>
     </div>
   </div>
 </div>
@@ -157,10 +191,12 @@
 <script src="js/helpers.js"></script>
 <script src="js/modais-helpers.js"></script>
 <script src="js/utils-offline.js"></script>
+<script src="js/fotos.js"></script>
 <script src="js/ui-shell.js"></script>
 <script src="js/chamados.js"></script>
 <script src="js/usuarios.js"></script>
 <script src="js/sites.js"></script>
+<script src="js/planejadas.js"></script>
 <script src="js/dashboard.js"></script>
 </body>
 </html>

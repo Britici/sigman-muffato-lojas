@@ -9,16 +9,17 @@ const CACHE_TTL_MS = 3 * 60 * 1000;
 const SESSION_REVALIDATE_MS = 3 * 60 * 1000;
 
 const ROLES = {
-  admin:        { label: 'Administração', menus: ['dashboard', 'fila-chamados', 'sites', 'usuarios'] },
+  admin:        { label: 'Administração', menus: ['dashboard', 'fila-chamados', 'planejadas', 'sites', 'usuarios'] },
   gerente_loja: { label: 'Gerente de Loja', menus: ['solicitacao', 'minhas-solicitacoes'] },
-  manutentor:   { label: 'Manutenção',      menus: ['fila-chamados'] }
+  manutentor:   { label: 'Manutenção',      menus: ['fila-chamados', 'planejadas'] }
 };
 
 const STATE = {
   sessao: null,     // { login, nome, tipo, cargo, sites, menus }
   boot: null,        // resultado do readAll (Sites) — NUNCA inclui Usuarios
   chamados: [],       // carregado sob demanda (lazy)
-  usuarios: []         // carregado sob demanda (lazy), admin-only, sem senha
+  usuarios: [],        // carregado sob demanda (lazy), admin-only, sem senha
+  planejadas: []        // carregado sob demanda (lazy)
 };
 
 // ============================================================
@@ -176,17 +177,10 @@ async function carregarChamados() {
   renderChamados();
 }
 
-// Lazy load, admin-only. O servidor já remove Senha_Hash da resposta —
-// nunca existirá senha em texto puro chegando no navegador por este caminho.
-async function carregarUsuarios() {
-  const res = await apiGet({ action: 'usuarios_list', login: STATE.sessao.login });
-  if (res && res.ok) {
-    STATE.usuarios = res.usuarios;
-  } else {
-    showToast((res && res.error) || 'Falha ao carregar usuários', 'er');
-  }
-  _renderUsuariosList();
-}
+// carregarUsuarios() mora em usuarios.js — é lógica de negócio do módulo
+// de usuários, não pertence ao core genérico (mesmo padrão de
+// carregarChamados ficar em core.js só porque chamados.js reusa muito
+// dele; usuarios.js já tinha peso próprio suficiente pra hospedar a sua).
 
 // ============================================================
 // ROTEAMENTO — filtra por menus liberados no perfil

@@ -14,8 +14,8 @@ function _renderDashboardKpis() {
   if (!pg) return;
   const chamados = STATE.chamados;
 
-  const abertos = chamados.filter(c => c.Status === 'Aberta').length;
-  const emAtendimento = chamados.filter(c => c.Status === 'Em_Atendimento').length;
+  const abertos = chamados.filter(c => c.Status === 'Aguardando').length;
+  const emAtendimento = chamados.filter(c => c.Status === 'Em_Andamento').length;
   const concluidos = chamados.filter(c => c.Status === 'Concluida');
 
   const temposFechamento = concluidos
@@ -36,7 +36,7 @@ function _renderDashboardKpis() {
   pg.innerHTML = `
     <div class="ph"><div class="pt">Dashboard</div></div>
     <div class="stats">
-      <div class="sc-card"><div class="sc-lbl">Abertos</div><div class="sc-val">${abertos}</div></div>
+      <div class="sc-card"><div class="sc-lbl">Aguardando</div><div class="sc-val">${abertos}</div></div>
       <div class="sc-card"><div class="sc-lbl">Em Atendimento</div><div class="sc-val c-b">${emAtendimento}</div></div>
       <div class="sc-card"><div class="sc-lbl">Críticos em Aberto</div><div class="sc-val ${criticosAbertos ? 'c-r' : ''}">${criticosAbertos}</div></div>
       <div class="sc-card"><div class="sc-lbl">Tempo Médio de Atendimento</div><div class="sc-val">${mediaHoras !== null ? mediaHoras + 'h' : '—'}</div></div>

@@ -27,8 +27,8 @@ function roleBadge(tipo) {
 }
 
 function statusBadge(status) {
-  const c = { Aberta: 'b-pen', Em_Atendimento: 'b-pre', Concluida: 'b-con', Cancelada: '' };
-  const l = { Aberta: 'Aberta', Em_Atendimento: 'Em Atendimento', Concluida: 'Concluída', Cancelada: 'Cancelada' };
+  const c = { Aguardando: 'b-pen', Em_Andamento: 'b-pre', Concluida: 'b-con', Cancelada: '' };
+  const l = { Aguardando: 'Aguardando', Em_Andamento: 'Em Andamento', Concluida: 'Concluída', Cancelada: 'Cancelada' };
   return `<span class="badge ${c[status] || ''}">${l[status] || status}</span>`;
 }
 

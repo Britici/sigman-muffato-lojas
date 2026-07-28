@@ -7,7 +7,8 @@
 
 const LABELS_MENU = {
   dashboard: 'Dashboard',
-  'fila-chamados': 'Fila de Chamados',
+  'fila-chamados': 'Ordens de Serviço',
+  planejadas: 'Planejadas (PCM)',
   sites: 'Lojas',
   usuarios: 'Usuários',
   solicitacao: 'Nova Solicitação',
@@ -21,6 +22,7 @@ const LABELS_MENU = {
 const RENDER_POR_PAGINA = {
   dashboard: 'renderDashboard',
   'fila-chamados': 'renderFilaChamados',
+  planejadas: 'renderPlanejadas',
   sites: 'renderSites',
   usuarios: 'renderUsuarios',
   solicitacao: 'renderSolicitacao',
