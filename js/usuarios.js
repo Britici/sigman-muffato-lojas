@@ -1,168 +1,178 @@
-/**
- * SIGMAN VAREJO — usuarios.js
- * CRUD de usuários (admin): criar, editar, resetar senha, ativar/desativar.
- * + fluxo de troca de senha obrigatória no primeiro login (mudar123).
- */
+/* ══════════════════════════════════════════════════════════════════
+   SIGMAN — USUÁRIOS (aba dedicada, só admin)
+   Muffato Foods
+   ══════════════════════════════════════════════════════════════════ */
 
-// Entry point chamado pelo roteador. Sempre busca dados frescos — NÃO
-// decide com base em STATE.usuarios.length (já causou loop infinito real
-// quando a lista vinha vazia: ver comentário em carregarUsuarios/core.js).
-async function renderUsuarios() {
-  await carregarUsuarios();
+var usrSort = { col: 'nome', dir: 'asc' };
+
+function sortUsr(col) {
+  if (usrSort.col === col) {
+    usrSort.dir = usrSort.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    usrSort.col = col;
+    usrSort.dir = 'asc';
+  }
+  renderUsuarios();
 }
 
-function _renderUsuariosList() {
-  const pg = document.getElementById('pg-usuarios');
-  if (!pg) return;
-
-  pg.innerHTML = `
-    <div class="ph">
-      <div class="pt">Usuários</div>
-      <button class="btn btn-p btn-sm" onclick="abrirNovoUsuario()">+ Novo Usuário</button>
-    </div>
-    <div class="tw"><table>
-      <thead><tr><th>Nome</th><th>Login</th><th>Perfil</th><th>Sites</th><th>Cargo</th><th>Status</th><th></th></tr></thead>
-      <tbody>
-        ${STATE.usuarios.map(u => `
-          <tr>
-            <td>${escapeHtml(u.Nome)}</td>
-            <td>${escapeHtml(u.Login)}</td>
-            <td>${roleBadge(u.Tipo)}</td>
-            <td>${escapeHtml(u.Sites || '—')}</td>
-            <td>${escapeHtml(u.Cargo || '—')}</td>
-            <td>${u.Ativo === 'sim' ? '<span class="badge b-con">Ativo</span>' : '<span class="badge">Inativo</span>'}</td>
-            <td style="white-space:nowrap;display:flex;gap:6px">
-              <button class="btn btn-sm btn-gh" onclick="abrirEditarUsuario('${escapeHtml(u.Login)}')">Editar</button>
-              <button class="btn btn-sm btn-gh" onclick="resetarSenhaUsuario('${u.Login}')">Resetar senha</button>
-              ${u.Login !== STATE.sessao.login ? `
-                <button class="btn btn-sm btn-gh" onclick="alternarAtivoUsuario('${u.Login}', '${u.Ativo === 'sim' ? 'nao' : 'sim'}')">
-                  ${u.Ativo === 'sim' ? 'Desativar' : 'Ativar'}
-                </button>` : ''}
-            </td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table></div>
-  `;
+function _usrRoleLabel(t) {
+  return (ROLES[t] && ROLES[t].label) || t || '';
 }
 
-// ── CRIAR ──
+function _usrRowHtml(u) {
+  const podeMexer = CU && CU.tipo === 'administracao';
+  const acoes = podeMexer ? `
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+       <button class="btn btn-sm btn-gh" onclick="abrirEditarUsuario('${u.login}')">✏️ Editar</button>
+       <button class="btn btn-sm btn-gh" onclick="resetarSenhaUsuario('${u.login}')">🔑 Resetar</button>
+       ${u.ativo
+         ? `<button class="btn btn-sm btn-gh" onclick="toggleAtivoUsuario('${u.login}', false)">🚫 Desativar</button>`
+         : `<button class="btn btn-sm btn-p"  onclick="toggleAtivoUsuario('${u.login}', true)">✅ Reativar</button>`}
+      </div>` : '—';
+
+  return `
+    <tr>
+     <td>${u.nome || ''}</td>
+     <td>${u.cargo || '–'}</td>
+     <td>${u.login}</td>
+     <td>${roleBadge(u.tipo)}</td>
+     <td>${acoes}</td>
+    </tr>`;
+}
+
+function renderUsuarios() {
+  const tbA = document.getElementById('tb-usr-ativos');
+  const tbI = document.getElementById('tb-usr-inativos');
+  if (!tbA || !tbI) return;
+
+  const { col, dir } = usrSort;
+  const withPerfil = u => ({ ...u, perfil: _usrRoleLabel(u.tipo) });
+  const norm = col === 'perfil' ? withPerfil : (u => u);
+  const cmp = (a, b) => {
+    const va = (a[col] || '').toString().toLowerCase();
+    const vb = (b[col] || '').toString().toLowerCase();
+    const r = va.localeCompare(vb);
+    return dir === 'asc' ? r : -r;
+  };
+
+  ['nome', 'cargo', 'login', 'perfil'].forEach(c => {
+    const el = document.getElementById('uh-' + c);
+    if (!el) return;
+    el.classList.remove('asc', 'desc');
+    if (c === col) el.classList.add(dir);
+  });
+
+  const ativos   = db.usuarios.filter(u => u.ativo !== false).map(norm).sort(cmp);
+  const inativos = db.usuarios.filter(u => u.ativo === false).map(norm).sort(cmp);
+
+  document.getElementById('usr-tit-ativos').textContent   = `Usuários Ativos (${ativos.length})`;
+  document.getElementById('usr-tit-inativos').textContent = `Usuários Desativados (${inativos.length})`;
+
+  tbA.innerHTML = ativos.length
+    ? ativos.map(_usrRowHtml).join('')
+    : '<tr><td colspan="5" class="empty" style="padding:20px 0">Nenhum usuário ativo.</td></tr>';
+
+  tbI.innerHTML = inativos.length
+    ? inativos.map(_usrRowHtml).join('')
+    : '<tr><td colspan="5" class="empty" style="padding:20px 0">Nenhum usuário desativado.</td></tr>';
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// MODAL: NOVO / EDITAR
+// ══════════════════════════════════════════════════════════════════════
+function _usrPopulatePerfil() {
+  const sel = document.getElementById('usr-perfil');
+  sel.innerHTML = Object.keys(ROLES).map(k => `<option value="${k}">${ROLES[k].label}</option>`).join('');
+}
+
 function abrirNovoUsuario() {
-  document.getElementById('mu-titulo').textContent = 'Novo Usuário';
-  document.getElementById('mu-login-field').style.display = 'block'; // login só é editável na criação
-  sv('nu-login', ''); sv('nu-nome', ''); sv('nu-tipo', ''); sv('nu-sites', ''); sv('nu-cargo', '');
-  document.getElementById('m-novo-usuario').dataset.modo = 'criar';
-  openM('m-novo-usuario');
+  _usrPopulatePerfil();
+  document.getElementById('usr-m-t').textContent = 'Novo Usuário';
+  document.getElementById('usr-login-orig').value = '';
+  document.getElementById('usr-nome').value = '';
+  document.getElementById('usr-cargo').value = '';
+  document.getElementById('usr-login').value = '';
+  document.getElementById('usr-login').disabled = false;
+  document.getElementById('usr-perfil').value = 'manutencao';
+  document.getElementById('usr-senha-info').style.display = 'block';
+  openM('m-usr');
 }
 
-// ── EDITAR ── (recebe o objeto usuário já carregado, sem precisar de
-// outro round-trip ao servidor)
-function abrirEditarUsuario(loginAlvo) {
-  const u = STATE.usuarios.find(x => x.Login === loginAlvo);
-  if (!u) { showToast('Usuário não encontrado na lista carregada.', 'er'); return; }
-  document.getElementById('mu-titulo').textContent = `Editar ${u.Nome}`;
-  document.getElementById('mu-login-field').style.display = 'none'; // login não muda depois de criado
-  sv('nu-login', u.Login); sv('nu-nome', u.Nome); sv('nu-tipo', u.Tipo);
-  sv('nu-sites', u.Sites || ''); sv('nu-cargo', u.Cargo || '');
-  document.getElementById('m-novo-usuario').dataset.modo = 'editar';
-  openM('m-novo-usuario');
+function abrirEditarUsuario(login) {
+  const u = db.usuarios.find(x => x.login === login);
+  if (!u) return;
+  _usrPopulatePerfil();
+  document.getElementById('usr-m-t').textContent = 'Editar Usuário';
+  document.getElementById('usr-login-orig').value = u.login;
+  document.getElementById('usr-nome').value = u.nome || '';
+  document.getElementById('usr-cargo').value = u.cargo || '';
+  document.getElementById('usr-login').value = u.login;
+  document.getElementById('usr-login').disabled = true; // login é a chave — não muda por aqui
+  document.getElementById('usr-perfil').value = u.tipo;
+  document.getElementById('usr-senha-info').style.display = 'none';
+  openM('m-usr');
 }
 
-// Botão único do modal decide entre criar/editar pelo dataset.modo —
-// evita duplicar o formulário inteiro só pra trocar a ação de destino.
 async function salvarUsuario() {
-  const modo = document.getElementById('m-novo-usuario').dataset.modo;
-  const Login = v('nu-login').trim(), Nome = v('nu-nome').trim(),
-        Tipo = v('nu-tipo'), Sites = v('nu-sites').trim(), Cargo = v('nu-cargo').trim();
+  const origLogin = v('usr-login-orig');
+  const nome   = v('usr-nome').trim();
+  const cargo  = v('usr-cargo').trim();
+  const login  = v('usr-login').trim().toLowerCase();
+  const perfil = v('usr-perfil');
+  const isNovo = !origLogin;
 
-  if (!Login || !Nome || !Tipo) {
-    showToast('Preencha Login, Nome e Perfil.', 'er');
+  if (!nome || !login) { showAlert('al-usr', 'Nome e Login são obrigatórios.', 'err'); return; }
+
+  if (isNovo) {
+    const existe = db.usuarios.some(u => u.login.toLowerCase() === login);
+    if (existe) { showAlert('al-usr', 'Já existe um usuário com esse login.', 'err'); return; }
+
+    const res = await apiAppend('usuarios', {
+      Login: login, Nome: nome, Cargo: cargo, Tipo_Acesso: perfil,
+      Senha_Hash: 'mudar123', Ativo: 'sim', Criado_Em: new Date().toISOString()
+    });
+    if (!res || !res.ok) { showAlert('al-usr', 'Erro ao criar usuário: ' + (res && res.error || 'sem conexão'), 'err'); return; }
+    db.usuarios.push({ login, nome, cargo, tipo: perfil, senha: 'mudar123', ativo: true });
+    showAlert('al-usr', 'Usuário criado. Senha inicial: mudar123', 'ok');
+  } else {
+    const res = await apiUpdate('usuarios', origLogin, 'Login', { Nome: nome, Cargo: cargo, Tipo_Acesso: perfil });
+    if (!res || !res.ok) { showAlert('al-usr', 'Erro ao salvar: ' + (res && res.error || 'sem conexão'), 'err'); return; }
+    const u = db.usuarios.find(x => x.login === origLogin);
+    if (u) { u.nome = nome; u.cargo = cargo; u.tipo = perfil; }
+    showAlert('al-usr', 'Usuário atualizado.', 'ok');
+  }
+
+  closeM('m-usr');
+  renderUsuarios();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// RESETAR SENHA / ATIVAR / DESATIVAR
+// ══════════════════════════════════════════════════════════════════════
+async function resetarSenhaUsuario(login) {
+  if (!confirm(`Resetar a senha de "${login}" para mudar123?`)) return;
+  const res = await apiUpdate('usuarios', login, 'Login', { Senha_Hash: 'mudar123' });
+  if (!res || !res.ok) { showAlert('al-usr', 'Erro ao resetar senha: ' + (res && res.error || 'sem conexão'), 'err'); return; }
+  const u = db.usuarios.find(x => x.login === login);
+  if (u) u.senha = 'mudar123';
+  showAlert('al-usr', `Senha de ${login} resetada para mudar123.`, 'ok');
+  renderUsuarios();
+}
+
+async function toggleAtivoUsuario(login, ativar) {
+  if (!ativar && CU && CU.login === login) {
+    showAlert('al-usr', 'Você não pode desativar o próprio usuário.', 'err');
     return;
   }
-  if (Tipo === 'gerente_loja' && !Sites) {
-    showToast('Gerente de loja precisa de ao menos um Site (ex: 1004 ou 1004,1017).', 'er');
-    return;
-  }
+  const msg = ativar
+    ? `Reativar o acesso de "${login}"?`
+    : `Desativar o acesso de "${login}"? O usuário não poderá mais entrar no sistema (o cadastro não é excluído).`;
+  if (!confirm(msg)) return;
 
-  const body = modo === 'editar'
-    ? { action: 'usuario_editar', loginAdmin: STATE.sessao.login, Login, Nome, Tipo, Sites, Cargo }
-    : { action: 'usuario_criar', loginAdmin: STATE.sessao.login, Login, Nome, Tipo, Sites, Cargo };
-
-  const res = await apiPost(body);
-  if (res && res.ok) {
-    showToast(modo === 'editar' ? 'Usuário atualizado.' : 'Usuário criado. Senha inicial: mudar123', 'ok');
-    closeM('m-novo-usuario');
-    await carregarUsuarios();
-  }
-}
-
-async function alternarAtivoUsuario(loginAlvo, novoStatus) {
-  const acao = novoStatus === 'nao' ? 'desativar' : 'ativar';
-  if (!confirm(`Confirma ${acao} o usuário ${loginAlvo}?`)) return;
-  const res = await apiPost({
-    action: 'usuario_editar',
-    loginAdmin: STATE.sessao.login,
-    Login: loginAlvo,
-    Ativo: novoStatus
-  });
-  if (res && res.ok) {
-    showToast(`Usuário ${novoStatus === 'nao' ? 'desativado' : 'ativado'}.`, 'ok');
-    await carregarUsuarios();
-  }
-}
-
-async function resetarSenhaUsuario(loginAlvo) {
-  if (!confirm(`Resetar a senha de ${loginAlvo} para 'mudar123'?`)) return;
-  const res = await apiPost({
-    action: 'usuario_reset_senha',
-    loginAdmin: STATE.sessao.login,
-    loginAlvo
-  });
-  if (res && res.ok) {
-    showToast('Senha resetada para mudar123.', 'ok');
-  }
-}
-
-// ============================================================
-// TROCA DE SENHA OBRIGATÓRIA (primeiro login com mudar123)
-// ============================================================
-function abrirModalTrocaSenhaObrigatoria() {
-  sv('tso-nova', '');
-  sv('tso-confirma', '');
-  openM('m-troca-senha-obrigatoria');
-  // Este modal não tem botão de fechar/ESC — trocar a senha é obrigatório
-  // antes de liberar o resto do app (ver modais-helpers.js: MODAIS_NAO_FECHAVEIS).
-}
-
-async function confirmarTrocaSenhaObrigatoria() {
-  const nova = v('tso-nova'), confirma = v('tso-confirma');
-  if (!nova || nova.length < 4) { showToast('Senha muito curta.', 'er'); return; }
-  if (nova !== confirma) { showToast('As senhas não conferem.', 'er'); return; }
-  if (nova === 'mudar123') { showToast('Escolha uma senha diferente da padrão.', 'er'); return; }
-
-  const res = await apiPost({
-    action: 'usuario_trocar_senha',
-    login: STATE.sessao.login,
-    senhaAtual: 'mudar123',
-    senhaNova: nova
-  });
-  if (res && res.ok) {
-    showToast('Senha atualizada!', 'ok');
-    closeM('m-troca-senha-obrigatoria');
-    STATE.sessao.precisaTrocarSenha = false;
-    localStorage.setItem('sigman_sess', JSON.stringify(STATE.sessao));
-    await boot();
-  } else {
-    showToast((res && res.error) || 'Erro ao trocar senha.', 'er');
-  }
-}
-
-async function carregarUsuarios() {
-  const res = await apiGet({ action: 'usuarios_list', login: STATE.sessao.login });
-  if (res && res.ok) {
-    STATE.usuarios = res.usuarios;
-  } else {
-    showToast((res && res.error) || 'Falha ao carregar usuários', 'er');
-  }
-  _renderUsuariosList();
+  const res = await apiUpdate('usuarios', login, 'Login', { Ativo: ativar ? 'sim' : 'nao' });
+  if (!res || !res.ok) { showAlert('al-usr', 'Erro ao atualizar status: ' + (res && res.error || 'sem conexão'), 'err'); return; }
+  const u = db.usuarios.find(x => x.login === login);
+  if (u) u.ativo = ativar;
+  showAlert('al-usr', ativar ? 'Usuário reativado.' : 'Usuário desativado.', 'ok');
+  renderUsuarios();
 }

@@ -4,7 +4,7 @@
   <link rel="icon" href="https://muffatosupermercados.vteximg.com.br/arquivos/muffatosupermercados-favicon-2.ico">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes">
-<title>SIGMAN · Varejo</title>
+<title>SIGMAN · Muffato Foods</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700;800&family=Barlow+Condensed:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/sigman.css">
 </head>
@@ -22,7 +22,9 @@
     border-top-color:var(--red);
     animation:spin .8s linear infinite;
   "></div>
-  <div style="font-family:var(--fw);font-size:15px;color:var(--txt3);font-variant:small-caps;letter-spacing:1px;">Carregando...</div>
+  <div style="font-family:var(--fw);font-size:15px;color:var(--txt3);font-variant:small-caps;letter-spacing:1px;">
+    Carregando...
+  </div>
 </div>
 
 <!-- ══ LOGIN ══ -->
@@ -30,17 +32,25 @@
  <div class="lbox">
   <div class="lbrand">
    <img id="l-logo" src="https://muffatofoods.com.br/assets/images/foods_logo.png" alt="Muffato">
-   <div><div class="lsigman">SIG<em>MAN</em></div><div class="lsub">Varejo</div></div>
+   <div><div class="lsigman">SIG<em>MAN</em></div><div class="lsub">Muffato Foods</div></div>
   </div>
   <div class="lalert" id="l-alert"></div>
   <div id="lf-login">
    <div class="ltitle">Acesso ao Sistema</div>
-   <div class="fg"><label>Usuário</label><input type="text" id="l-u" placeholder="Login" autocomplete="username" onkeydown="if(event.key==='Enter') document.getElementById('l-p').focus()"></div>
-   <div class="fg"><label>Senha</label><input type="password" id="l-p" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter') tentarLogin()"></div>
-   <button class="btn btn-p btn-fl" onclick="tentarLogin()" style="margin-top:4px">Entrar</button>
+   <div class="fg"><label>Usuário</label><input type="text" id="l-u" placeholder="Login" autocomplete="username"></div>
+   <div class="fg"><label>Senha</label><input type="password" id="l-p" placeholder="••••••••" autocomplete="current-password"></div>
+   <button class="btn btn-p btn-fl" onclick="doLogin()" style="margin-top:4px">Entrar</button>
+  </div>
+  <div id="lf-troca-senha" style="display:none">
+   <div class="ltitle">Defina sua Nova Senha</div>
+   <div style="font-size:13px;color:var(--txt3);margin-bottom:10px">Sua senha foi resetada. Escolha uma senha nova — só você vai saber ela, nem o administrador tem acesso.</div>
+   <div class="fg"><label>Nova senha</label><input type="password" id="tn-p1" placeholder="••••••••" autocomplete="new-password"></div>
+   <div class="fg"><label>Confirmar nova senha</label><input type="password" id="tn-p2" placeholder="••••••••" autocomplete="new-password"></div>
+   <button class="btn btn-p btn-fl" onclick="confirmarTrocaSenha()" style="margin-top:4px">Definir Senha e Entrar</button>
+   <button class="btn btn-gh btn-fl" onclick="cancelarTrocaSenha()" style="margin-top:8px">Voltar</button>
+  </div>
   </div>
  </div>
-</div>
 
 <!-- ══ APP ══ -->
 <div id="app">
@@ -50,7 +60,7 @@
    <img class="sb-logo" id="sb-logo" src="https://muffatofoods.com.br/assets/images/foods_logo.png" alt="M">
    <div class="sb-brand">
     <div class="sb-sig">SIG<em>MAN</em></div>
-    <div class="sb-sub2">Varejo</div>
+    <div class="sb-sub2">Muffato Foods</div>
    </div>
   </div>
   <nav class="sb-nav" id="sb-nav"></nav>
@@ -68,135 +78,1249 @@
  <div class="main">
   <header class="tb">
    <button class="tb-tog" onclick="toggleSB()">☰</button>
-   <div class="tb-title" id="tb-t" onclick="location.hash=STATE.sessao.menus[0]" style="cursor:pointer">SIGMAN Varejo</div>
+   <div class="tb-title" id="tb-t" onclick="showPage('dashboard')" style="cursor:pointer" title="Voltar ao Dashboard">Dashboard</div>
    <div class="tb-r">
-    <div class="tb-stat" id="tb-stat" style="display:none"></div>
+    <div class="tb-stat" id="tb-stat" onclick="showPage('abertura');closeSB()"><span id="th-hj">0</span> OS hoje</div>
     <button class="tb-btn" onclick="toggleTheme()" id="th-btn">🌙</button>
-    <button class="tb-btn" onclick="fazerLogout()" title="Sair">⎋</button>
-   </div>
+    <button class="tb-btn" onclick="doLogout()" title="Sair">⎋</button>   </div>
   </header>
 
   <main class="cont">
-    <div id="offline-banner"></div>
-    <div id="pg-dashboard" class="pg"></div>
-    <div id="pg-fila-chamados" class="pg"></div>
-    <div id="pg-planejadas" class="pg"></div>
-    <div id="pg-sites" class="pg"></div>
-    <div id="pg-usuarios" class="pg"></div>
-    <div id="pg-solicitacao" class="pg"></div>
-    <div id="pg-minhas-solicitacoes" class="pg"></div>
-  </main>
+
+   <!-- DASHBOARD -->
+   <div class="pg" id="pg-dashboard">
+    <div class="ph" style="flex-wrap:wrap;align-items:center;gap:8px">
+     <div class="pt"><small>Visão Geral</small>Dashboard</div>
+     <select id="dash-periodo" onchange="renderDash()" style="background:var(--surf2);border:1px solid var(--bord);border-radius:var(--rs);color:var(--txt);padding:5px 10px;font-size:14px;font-family:var(--fw);font-weight:600;cursor:pointer">
+      <option value="dia">Hoje</option>
+      <option value="semana">Últimos 7 dias</option>
+      <option value="mes" selected>Mês</option>
+      <option value="ano">Ano</option>
+      <option value="custom">Período Customizado</option>
+     </select>
+     <div id="dash-custom-dates" style="display:none;gap:8px;align-items:center">
+      <label style="font-size:14px;color:var(--txt3);font-weight:600">Data Inicial:</label>
+      <input type="hidden" id="dash-dt-ini">
+      <input type="text" id="dash-dt-ini_disp" class="date-mask" placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" oninput="dateMaskInput(this)" onchange="renderDash()" style="background:var(--inp);border:1px solid var(--bord);border-radius:var(--rs);color:var(--txt);padding:5px 8px;font-size:14px;width:100px">
+      <label style="font-size:14px;color:var(--txt3);font-weight:600">Data Final:</label>
+      <input type="hidden" id="dash-dt-fim">
+      <input type="text" id="dash-dt-fim_disp" class="date-mask" placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" oninput="dateMaskInput(this)" onchange="renderDash()" style="background:var(--inp);border:1px solid var(--bord);border-radius:var(--rs);color:var(--txt);padding:5px 8px;font-size:14px;width:100px">
+     </div>
+     <div id="dash-rf-bar" style="display:flex;align-items:center;gap:6px;background:var(--surf2);border:1px solid var(--bord);border-radius:var(--rs);padding:5px 10px;flex-shrink:0">
+       <span class="rf-dot off" id="rf-dot"></span>
+       <button class="btn btn-sm btn-gh" onclick="renderDash()" style="padding:4px 10px">🔄 Atualizar</button>
+       <button class="btn btn-sm" id="rf-btn" onclick="toggleDashRefresh()" style="background:var(--surf3);color:var(--txt2);border:1px solid var(--bord);border-radius:var(--rs);padding:4px 10px;cursor:pointer;font-size:13px;font-family:var(--fw);font-weight:700">▶ 15s</button>
+       <span id="rf-lbl" style="font-size:13px;color:var(--txt3);white-space:nowrap">Desligada</span>
+     </div>
+     <button class="btn btn-sm btn-gh" onclick="exportDashPDF()" style="margin-left:auto;padding:5px 12px">📄 PDF</button>
+    </div>
+    <div id="dash-banner" style="display:none"></div>
+    <div id="offline-banner">⚠️ <strong>Modo offline</strong> — dados do Google Sheets indisponíveis. Exibindo cache local.</div>
+    <div class="stats" id="d-stats"></div>
+
+  <!-- Disponibilidade + Meta PCM + Tendência na mesma linha -->
+  <div class="tri-col">
+    <div class="card"><div class="card-t">Disponibilidade do Período</div><div id="d-gauge"></div></div>
+    <div class="card"><div class="card-t">Meta PCM — % Preventiva</div><div id="d-pcm-ring"></div></div>
+    <div class="card"><div class="card-t">Tendência — OS por Mês (últimos 6 meses)</div><div id="d-trend"></div></div>
+  </div>
+  <div class="two-col">
+    <div class="card"><div class="card-t">O.S. Planejadas em Aberto</div><div id="d-plan"></div></div>
+    <div class="card"><div class="card-t">Solicitações da Produção — Pendentes</div><div id="d-sol"></div></div>
+  </div>
+  <div class="card">
+    <div class="card-t" style="justify-content:space-between">
+      <span style="flex:1">Inspeção Diária — Último Relatório</span>
+      <button class="btn btn-sm btn-gh" onclick="verRelatorio()">Ver Completo</button>
+    </div>
+    <div id="d-insp"></div>
+  </div>
+  <div class="two-col">
+    <div class="card"><div class="card-t">🔔 Próximas Manutenções Planejadas</div><div id="d-proximas"></div></div>
+    <div class="card"><div class="card-t">Últimas O.S. Executadas</div><div id="d-rec"></div></div>
+  </div>
+      <div class="two-col">
+        <div class="card"><div class="card-t">🏭 Ranking Salas — Corretivas</div><div id="d-top-salas"></div></div>
+        <div class="card"><div class="card-t">🔧 Ranking Máquinas — Corretivas</div><div id="d-top-maq"></div></div>
+      </div>
+  </div>
+    
+   <!-- OS PLANEJADAS -->
+      <div class="pg" id="pg-planejadas">
+    <div class="ph">
+     <div class="pt"><small>Gestão</small>O.S. Planejadas</div>
+     <button class="btn btn-gh btn-sm" onclick="exportPlanCSV()">⬇ Exportar com Filtros</button>
+    </div>
+    <div class="fr">
+     <input type="text" id="fp-tx" placeholder="🔍 Buscar..." oninput="renderPlanDebounced()">
+     <select id="fp-tp" onchange="renderPlan()">
+      <option value="">Todos os Tipos</option>
+      <option>Corretiva</option><option>Inspeção</option><option>Melhoria</option><option>Preditiva</option><option>Preventiva</option>
+     </select>
+     <select id="fp-sl" onchange="renderPlan()"><option value="">Todas as Salas</option></select>
+     <select id="fp-st" onchange="renderPlan()">
+      <option value="">Todos os Status</option>
+      <option>Pendente</option><option>Concluída</option><option>Atrasada</option>
+     </select>
+     <input type="hidden" id="fp-dt-ini"><input type="text" id="fp-dt-ini_disp" class="date-mask" title="Prazo inicial" placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" oninput="dateMaskInput(this)" onchange="renderPlan()">
+     <input type="hidden" id="fp-dt-fim"><input type="text" id="fp-dt-fim_disp" class="date-mask" title="Prazo final" placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" oninput="dateMaskInput(this)" onchange="renderPlan()">
+    </div>
+    <div class="card">
+     <div class="card-t">Não Concluídas</div>
+     <div class="tw"><table><thead><tr>
+      <th class="sortable" id="ph-numero"     onclick="sortPlan('numero')" style="width:100px;min-width:100px">OS #</th>
+      <th class="sortable" id="ph-sala"       onclick="sortPlan('sala')">Sala</th>
+      <th class="sortable" id="ph-maq"        onclick="sortPlan('maq')">Máquina</th>
+      <th class="sortable" id="ph-tipo"       onclick="sortPlan('tipo')">Tipo</th>
+      <th class="sortable" id="ph-prioridade" onclick="sortPlan('prioridade')">Prioridade</th>
+      <th class="sortable" id="ph-prazo"      onclick="sortPlan('prazo')">Prazo</th>
+      <th class="sortable" id="ph-status"     onclick="sortPlan('status')">Status</th>
+      <th>Ações</th>
+     </tr></thead><tbody id="tb-plan"></tbody></table></div>
+    </div>
+    <div class="card" style="margin-top:20px">
+     <div class="card-t">Concluídas</div>
+     <div class="tw"><table><thead><tr>
+      <th style="width:100px;min-width:100px">OS #</th>
+      <th>Sala</th><th>Máquina</th><th>Tipo</th><th>Prioridade</th>
+      <th>Prazo</th><th>Status</th><th>Ações</th>
+     </tr></thead><tbody id="tb-plan-concluidas"></tbody></table></div>
+    </div>
+   </div>
+
+   <!-- OS EXECUTADAS -->
+   <div class="pg" id="pg-executadas">
+    <div class="ph">
+     <div class="pt"><small>Histórico</small>O.S. Executadas</div>
+     <button class="btn btn-gh btn-sm" onclick="exportCSV()">⬇ Exportar com Filtros</button>
+    </div>
+    <div class="fr">
+     <input type="text" id="fe-tx" placeholder="🔍 Buscar..." oninput="renderExecDebounced()">
+     <select id="fe-tp" onchange="renderExec()">
+      <option value="">Todos os Tipos</option>
+      <option>Corretiva</option><option>Inspeção</option><option>Melhoria</option>
+      <option>Preditiva</option><option>Preventiva</option>
+     </select>
+     <select id="fe-sl" onchange="renderExec()"><option value="">Todas as Salas</option></select>
+     <select id="fe-mn" onchange="renderExec()"><option value="">Todos os Manut.</option></select>
+     <input type="hidden" id="fe-dt-ini"><input type="text" id="fe-dt-ini_disp" class="date-mask" title="Data inicial" placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" oninput="dateMaskInput(this)" onchange="renderExec()">
+     <input type="hidden" id="fe-dt-fim"><input type="text" id="fe-dt-fim_disp" class="date-mask" title="Data final" placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" oninput="dateMaskInput(this)" onchange="renderExec()">
+    </div>
+    <div class="tw"><table><thead><tr>
+    <th class="sortable" id="sh-numero" onclick="sortExec('numero')" style="width:100px;min-width:100px">OS #</th>
+    <th class="sortable" id="sh-data"   onclick="sortExec('data')">Data</th>
+    <th class="sortable" id="sh-sala"   onclick="sortExec('sala')">Sala</th>
+    <th class="sortable" id="sh-maq"    onclick="sortExec('maq')">Máquina</th>
+    <th class="sortable" id="sh-tipo"   onclick="sortExec('tipo')">Tipo</th>
+    <th class="sortable" id="sh-prioridade" onclick="sortExec('prioridade')">Prioridade</th>
+    <th class="sortable" id="sh-manut"  onclick="sortExec('manut')">Manutentor</th>  
+    <th>Tempo</th>
+    <th style="width:52px;text-align:center">Foto</th>
+    <th style="min-width:200px">Ações</th>
+    </tr></thead><tbody id="tb-exec"></tbody></table></div>
+   </div>
+
+   <!-- ABERTURA OS -->
+   <div class="pg" id="pg-abertura">
+    <div class="ph"><div class="pt"><small>Registro</small>Abertura de O.S.</div></div>
+    <div class="alert" id="al-ab"></div>
+    <div class="card">
+     <div class="card-t">Identificação</div>
+     <div class="fg-row">
+      <div class="fg"><label>Sala / Local</label><select id="ab-sl" onchange="fMaq('ab')"><option value="">Selecione...</option></select></div>
+      <div class="fg"><label>Máquina / Ativo</label><select id="ab-mq"><option value="">Selecione a sala</option></select></div>
+      <div class="fg"><label>Tipo de Ação</label><select id="ab-tp"><option value="">Selecione...</option><option>Corretiva</option><option>Inspeção</option><option>Melhoria</option><option>Preditiva</option><option>Preventiva</option></select></div>
+      <div class="fg"><label>Prioridade</label><select id="ab-pr"><option value="">Selecione...</option><option value="1">🔴 1 – Crítico (Parada de Máquina)</option><option value="2">🟡 2 – Alta (Risco de Parada)</option><option value="3">🔵 3 – Média (Preventiva)</option><option value="4">🟢 4 – Baixa (Melhoria)</option></select></div>
+      <div class="fg"><label>Manutentor Responsável</label><input type="text" id="ab-mn" placeholder="Nome"></div>
+     </div>
+    </div>
+    <div class="card">
+     <div class="card-t">Tempo de Intervenção</div>
+     <div class="fg-row fg-3">
+      <div class="fg"><label>Data</label>
+        <input type="hidden" id="ab-dt">
+        <input type="text" id="ab-dt_disp" class="date-mask" placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" oninput="dateMaskInput(this)">
+      </div>
+      <div class="fg"><label>Hora Início</label><input type="time" id="ab-in"></div>
+      <div class="fg"><label>Hora Fim</label><input type="time" id="ab-fm"></div>
+      <div class="fg"><label>Tempo de Parada (min)</label><input type="number" id="ab-parada" placeholder="0" min="0"></div>
+     </div>
+    </div>
+    <div class="card">
+     <div class="card-t">Descrição</div>
+     <div class="fg"><label>Problema / Ocorrência</label><textarea id="ab-pb" placeholder="Descreva o problema..."></textarea></div>
+     <div class="fg" style="margin-top:10px"><label>Ação / Serviço Executado</label><textarea id="ab-ac" placeholder="Descreva o serviço..."></textarea></div>
+     <div class="fg" style="margin-top:10px">
+      <label>Foto da OS (opcional)</label>
+      <div class="photo-zone" id="ab-photo-zone" onclick="document.getElementById('ab-photo-input').click()">
+       <input type="file" id="ab-photo-input" accept="image/*" style="display:none" onchange="previewPhoto(this)">
+       <div id="ab-photo-preview" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span style="color:var(--txt3);font-size:15px">📷 Clique para anexar foto</span>
+       </div>
+      </div>
+     </div>
+    </div>
+    <div class="fa">
+     <button class="btn btn-gh" onclick="clearAb()">Limpar</button>
+     <button class="btn btn-p" onclick="salvarOS()">✓ Registrar Ordem</button>
+    </div>
+   </div>
+
+   <!-- PLANEJAMENTO OS / PCM -->
+   <div class="pg" id="pg-planejamento">
+    <div class="ph"><div class="pt"><small>PCM</small>Planejamento de O.S.</div></div>
+    <div class="alert" id="al-pl"></div>
+    <div class="card">
+     <div class="card-t">Nova O.S. Planejada</div>
+     <div class="fg-row">
+      <div class="fg"><label>Sala / Local</label><select id="pl-sl" onchange="fMaq('pl')"><option value="">Selecione...</option></select></div>
+      <div class="fg"><label>Máquina / Ativo</label><select id="pl-mq"><option value="">Selecione a sala</option></select></div>
+      <div class="fg"><label>Tipo de Serviço</label><select id="pl-tp"><option value="">Selecione...</option><option>Corretiva</option><option>Inspeção</option><option>Melhoria</option><option>Preditiva</option><option>Preventiva</option></select></div>
+      <div class="fg"><label>Prioridade</label><select id="pl-pr"><option value="">Selecione...</option><option value="1">🔴 1 – Emergencial (Parada)</option><option value="2">🟡 2 – Urgente (Corretiva Programada)</option><option value="3">🔵 3 – Média (Preventiva)</option><option value="4">🟢 4 – Baixa (Melhoria)</option></select></div>
+      <div class="fg"><label>Prazo Limite</label><input type="hidden" id="pl-pz"><input type="text" id="pl-pz_disp" class="date-mask" placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" oninput="dateMaskInput(this)"></div>
+      <div class="fg" style="display:none"><label>Horas por Turno</label><input type="number" id="pl-horas" value="10" min="1" max="24"></div>
+      <div class="fg fg-full"><label>Descrição do Serviço Planejado</label><textarea id="pl-ds" placeholder="Descreva o serviço..."></textarea></div>
+     </div>
+     <div class="fa">
+      <button class="btn btn-gh" onclick="clearPl()">Limpar</button>
+      <button class="btn btn-p" onclick="salvarPlan()">+ Criar O.S. Planejada</button>
+     </div>
+    </div>
+   </div>
+
+   <!-- SOLICITAÇÃO OS -->
+   <div class="pg" id="pg-solicitacao">
+    <div class="ph"><div class="pt"><small>Produção</small>Solicitação de O.S.</div></div>
+    <div class="alert" id="al-sol"></div>
+    <div class="card">
+     <div class="card-t">Nova Solicitação</div>
+     <div class="fg-row">
+      <div class="fg"><label>Sala / Local</label><select id="sol-sl" onchange="fMaq('sol')"><option value="">Selecione...</option></select></div>
+      <div class="fg"><label>Máquina / Ativo</label><select id="sol-mq"><option value="">Selecione a sala</option></select></div>
+      <div class="fg"><label>Tipo</label><select id="sol-tp"><option value="">Selecione...</option><option>Corretiva</option><option>Melhoria</option></select></div>
+      <div class="fg"><label>Prioridade</label><select id="sol-pr"><option value="">Selecione...</option><option value="1">🔴 1 – Crítico (Parada de Máquina)</option><option value="2">🟡 2 – Alta (Risco de Parada)</option><option value="3">🔵 3 – Média (Preventiva)</option><option value="4">🟢 4 – Baixa (Melhoria)</option></select></div>
+      <div class="fg fg-full"><label>Descrição do Problema</label><textarea id="sol-ds" placeholder="Descreva o problema..."></textarea></div>
+      <div class="fg fg-full"><label>Foto do Problema (opcional)</label>
+        <div id="sol-photo-area" onclick="document.getElementById('sol-photo-input').click()" style="border:2px dashed var(--bord);border-radius:var(--rs);padding:14px;text-align:center;cursor:pointer;background:var(--surf2);display:flex;align-items:center;gap:14px;justify-content:center" onmouseover="this.style.borderColor='var(--red)'" onmouseout="this.style.borderColor='var(--bord)'">
+          <input type="file" id="sol-photo-input" accept="image/*" style="display:none" onchange="previewSolPhoto(this)">
+          <div id="sol-photo-preview"><span style="color:var(--txt3);font-size:15px">📷 Clique para anexar foto</span></div>
+        </div>
+      </div>
+     </div>
+     <div class="fa">       
+      <button class="btn btn-gh" onclick="clearSol()">Limpar</button>
+      <button class="btn btn-p" onclick="salvarSol()">Enviar Solicitação</button>
+     </div>
+    </div>
+      <div class="card">
+      <div class="card-t">
+        Solicitações Não Concluídas
+        <select id="sol-sort" onchange="renderSol()" style="font-family:var(--fw);font-size:13px;font-weight:700;background:var(--surf2);border:1px solid var(--bord);border-radius:var(--rs);color:var(--txt2);padding:3px 8px;cursor:pointer;margin-left:auto">
+          <option value="numero-desc">OS # ↓ (mais recente)</option>
+          <option value="numero-asc">OS # ↑ (mais antiga)</option>
+          <option value="prioridade-asc">Prioridade (crítica primeiro)</option>
+          <option value="status-asc">Status</option>
+          <option value="sala-asc">Sala A→Z</option>
+        </select>
+      </div>
+      <div id="sol-lista"></div>
+    </div>
+    <div class="card" style="margin-top:20px">
+      <div class="card-t">Solicitações Concluídas</div>
+      <div id="sol-lista-concluidas"></div>
+    </div>
+    </div>
+
+   <!-- INSPEÇÃO DIÁRIA -->
+   <div class="pg" id="pg-inspecao">
+    <div class="ph">
+     <div class="pt"><small>Operação</small>Inspeção Diária</div>
+     <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-gh" onclick="gerarRel()">📋 Relatório WhatsApp</button>
+      <button class="btn btn-sm btn-gh" onclick="imprimirInspDiaria()">🖨️ Imprimir Ordem</button>
+      <button class="btn btn-sm btn-p" onclick="salvarInsp()">💾 Salvar Inspeção</button>
+     </div>
+    </div>
+    <div class="alert" id="al-insp"></div>
+    <div class="card" style="margin-bottom:14px">
+     <div class="card-t">Dados da Inspeção</div>
+     <div class="fg-row">
+      <div class="fg"><label>Data</label><input type="hidden" id="insp-dt"><input type="text" id="insp-dt_disp" class="date-mask" placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" oninput="dateMaskInput(this)"></div>
+      <div class="fg"><label>Turno</label><select id="insp-tn"><option>1º Turno</option><option>2º Turno</option><option>3º Turno</option></select></div>
+      <div class="fg" style="display:none"><label>Horas do Turno</label><input type="number" id="insp-horas" value="10" min="1" max="24"></div>
+      <div class="fg"><label>Manutentor</label><input type="text" id="insp-mn" placeholder="Nome"></div>
+     </div>
+    </div>
+    <div id="insp-secs"></div>
+    <div class="fa">
+     <button class="btn btn-gh btn-sm" onclick="gerarRel()">📋 Gerar Relatório WhatsApp</button>
+     <button class="btn btn-p" onclick="salvarInsp()">💾 Salvar Inspeção</button>
+    </div>
+   </div>
+
+   <!-- ATIVOS -->
+   <div class="pg" id="pg-ativos">
+  <div class="ph">
+    <div class="pt"><small>Cadastro</small>Ativos</div>
+  </div>
+    <div class="card"><div class="card-t">Criticidade das Máquinas</div><div id="at-crit-chart"></div></div>
+    <div class="two-col">
+    <div>
+      <div class="card card-fold" id="at-card-sala">
+       <div class="card-t" onclick="toggleAtFold('at-card-sala')"><span>+ Nova Sala / Local</span><span class="card-t-chev">▾</span></div>
+       <div class="card-fold-body">
+        <div class="fg"><label>Nome da Sala</label><input type="text" id="at-sn" placeholder="Ex: Carne Moída"></div>
+        <button class="btn btn-p btn-sm" onclick="addSala()">+ Adicionar</button>
+       </div>
+      </div>
+      <div class="card"><div class="card-t">Salas Cadastradas</div><div id="at-sl"></div></div>
+        </div>
+     <div>
+      <div class="card card-fold" id="at-card-maq">
+       <div class="card-t" onclick="toggleAtFold('at-card-maq')"><span>+ Nova Máquina / Ativo</span><span class="card-t-chev">▾</span></div>
+       <div class="card-fold-body">
+        <div class="fg"><label>Sala</label><select id="at-ms"><option value="">Selecione...</option></select></div>
+        <div class="fg"><label>Nome da Máquina</label><input type="text" id="at-mn" placeholder="Ex: Cubadora"></div>
+        <div class="fg"><label>Tag / Código</label><input type="text" id="at-mt" placeholder="Ex: CUB-001"></div>
+        <div class="fg"><label>Criticidade</label>
+         <select id="at-mc">
+          <option value="1">1 – Crítico</option>
+          <option value="2">2 – Alta</option>
+          <option value="3" selected>3 – Média</option>
+          <option value="4">4 – Baixa</option>
+         </select>
+        </div>
+        <div class="fg"><label>Periodicidade Preventiva</label>
+         <select id="at-mp">
+          <option>Diária</option><option>Semanal</option>
+          <option selected>Mensal</option><option>Trimestral</option>
+          <option>Semestral</option><option>Anual</option>
+         </select>
+        </div>
+        <div class="fg"><label>Modelo de Manutenção Padrão</label>
+         <select id="at-mmp"><option value="">Nenhum (seleciona manual na OS)</option></select>
+        </div>
+        <button class="btn btn-p btn-sm" onclick="addMaq()">+ Adicionar</button>
+       </div>
+      </div>
+      <div class="card">
+        <div class="card-t" style="flex-wrap:wrap;gap:8px">
+          <span>Máquinas Cadastradas</span>
+          <div style="display:flex;gap:6px;margin-left:auto">
+            <input type="text" id="at-ml-busca" oninput="renderAtivos()" placeholder="Buscar nome ou tag..." style="font-size:14px;background:var(--inp);border:1px solid var(--bord);border-radius:var(--rs);color:var(--txt);padding:4px 8px;outline:none;width:140px">
+            <select id="at-ml-fil" onchange="renderAtivos()" style="font-size:14px;background:var(--inp);border:1px solid var(--bord);border-radius:var(--rs);color:var(--txt);padding:4px 8px;outline:none;max-width:140px">
+              <option value="">Todas as Salas</option>
+            </select>
+          </div>
+        </div>
+        <div id="at-ml"></div>
+      </div>       
+     </div>
+    </div>
+   </div>
+
+   <!-- PÁGINA: MANUAIS E SENHAS -->
+   <div class="pg" id="pg-manuais-senhas">
+    <div class="ph"><div class="pt"><small>Manutenção</small>Manuais e Senhas</div></div>
+    <div class="two-col">
+     <div id="ms-col-admin">
+      <div class="card">
+       <div class="card-t">Selecionar Máquina</div>
+       <div class="fg"><label>Sala / Local</label>
+        <select id="ms-sala" onchange="filtrarMSMaq()"><option value="">Selecione...</option></select>
+       </div>
+       <div class="fg"><label>Máquina / Ativo</label>
+        <select id="ms-maq" onchange="selecionarMSMaquina()"><option value="">Selecione a sala primeiro...</option></select>
+       </div>
+      </div>
+      <div class="card" id="ms-card-edicao" style="display:none">
+       <div class="card-t">Manual e Credenciais</div>
+       <div class="fg"><label>Link do Manual (Drive)</label>
+        <input type="text" id="ms-manual-url" placeholder="https://drive.google.com/...">
+       </div>
+       <div class="fg"><label>Credenciais de Acesso</label></div>
+       <div id="ms-cred-list"></div>
+       <button class="btn btn-sm btn-gh" onclick="addMSCredencial()">+ Adicionar Credencial</button>
+       <div class="fa">
+        <button class="btn btn-p btn-sm" onclick="salvarMS()">💾 Salvar</button>
+       </div>
+      </div>
+     </div>
+     <div>
+      <div class="card">
+       <div class="card-t" style="flex-wrap:wrap;gap:8px">
+        <span>Máquinas Cadastradas</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-left:auto">
+         <select id="ms-lista-sala" onchange="renderMSLista()" style="font-size:14px;background:var(--inp);border:1px solid var(--bord);border-radius:var(--rs);color:var(--txt);padding:4px 8px;outline:none">
+          <option value="">Todas as salas</option>
+         </select>
+         <input type="text" id="ms-busca" oninput="renderMSLista()" placeholder="Buscar máquina..." style="font-size:14px;background:var(--inp);border:1px solid var(--bord);border-radius:var(--rs);color:var(--txt);padding:4px 8px;outline:none;width:160px">
+        </div>
+       </div>
+       <div id="ms-lista"></div>
+      </div>
+     </div>
+    </div>
+   </div>
+
+   <!-- MODAL: CREDENCIAIS (Manuais e Senhas) -->
+   <div class="mb" id="m-ms-cred"><div class="modal" style="max-width:420px">
+    <div class="mhd"><div class="mtit">Usuário e Senha</div><button class="mcl" onclick="closeM('m-ms-cred')">×</button></div>
+    <div id="ms-cred-modal-body"></div>
+   </div></div>
+
+
+   <!-- PÁGINA: USUÁRIOS (admin only) -->
+   <div class="pg" id="pg-usuarios">
+    <div class="ph">
+     <div class="pt"><small>Administração</small>Gestão de Usuários</div>
+     <button class="btn btn-p btn-sm" onclick="abrirNovoUsuario()">+ Novo Usuário</button>
+    </div>
+    <div class="alert" id="al-usr"></div>
+    <div class="card">
+     <div class="card-t"><span id="usr-tit-ativos">Usuários Ativos</span></div>
+     <div class="tw"><table><thead><tr>
+      <th class="sortable" id="uh-nome"  onclick="sortUsr('nome')">Nome</th>
+      <th class="sortable" id="uh-cargo" onclick="sortUsr('cargo')">Cargo</th>
+      <th class="sortable" id="uh-login" onclick="sortUsr('login')">Login</th>
+      <th class="sortable" id="uh-perfil" onclick="sortUsr('perfil')">Perfil / Escopo</th>
+      <th>Ações</th>
+     </tr></thead><tbody id="tb-usr-ativos"></tbody></table></div>
+    </div>
+    <div class="card">
+     <div class="card-t"><span id="usr-tit-inativos">Usuários Desativados</span></div>
+     <div class="tw"><table><thead><tr>
+      <th>Nome</th><th>Cargo</th><th>Login</th><th>Perfil / Escopo</th><th>Ações</th>
+     </tr></thead><tbody id="tb-usr-inativos"></tbody></table></div>
+    </div>
+   </div>
+
+   <!-- MODAL: NOVO / EDITAR USUÁRIO -->
+   <div class="mb" id="m-usr"><div class="modal" style="max-width:420px">
+    <div class="mhd"><div class="mtit" id="usr-m-t">Novo Usuário</div><button class="mcl" onclick="closeM('m-usr')">×</button></div>
+    <input type="hidden" id="usr-login-orig">
+    <div class="fg"><label>Nome</label><input type="text" id="usr-nome" placeholder="Nome completo"></div>
+    <div class="fg"><label>Cargo</label><input type="text" id="usr-cargo" placeholder="Ex: Mecânico, Eletricista..."></div>
+    <div class="fg"><label>Login</label><input type="text" id="usr-login" placeholder="login de acesso"></div>
+    <div class="fg"><label>Perfil</label><select id="usr-perfil"></select></div>
+    <div class="fg" id="usr-senha-info" style="display:none;color:var(--txt3);font-size:13px">
+     Senha inicial: <b>mudar123</b> (o usuário pode trocar depois de logar).
+    </div>
+    <div class="fa">
+     <button class="btn btn-gh" onclick="closeM('m-usr')">Cancelar</button>
+     <button class="btn btn-p" onclick="salvarUsuario()">💾 Salvar</button>
+    </div>
+   </div></div>
+
+    <!-- PÁGINA: STATUS DE SALAS -->
+    <div class="pg" id="pg-salas-status">
+      <div class="ph"><div class="pt"><small>Operação</small>Status de Salas</div></div>
+      <div class="stats" id="salas-grid"></div>
+    </div>
+    
+   <!-- PÁGINA: PREVENTIVA (template - admin only) -->
+   <div class="pg" id="pg-preventiva">
+    <div class="ph">
+     <div class="pt"><small>PCM · Manutenção</small>Ordem de Manutenção Preventiva</div>
+     <button class="btn btn-sm btn-gh" onclick="imprimirPreventiva()">🖨️ Imprimir Ordem de Manutenção Preventiva</button>
+     <button class="btn btn-sm btn-gh" onclick="imprimirInspecaoEquipamento()">🖨️ Imprimir Ordem de Inspeção de Equipamento</button>
+    </div>
+    <div class="card">
+     <div class="card-t">Dados da Preventiva</div>
+     <div class="fg-row">
+      <div class="fg"><label>Sala / Local</label>
+       <select id="prev-sala" onchange="filtrarPrevMaq()"><option value="">Todas as Salas</option></select>
+      </div>
+      <div class="fg"><label>Máquina / Ativo</label>
+       <select id="prev-maq" onchange="selecionarPrevMaquina()"><option value="">Selecione...</option></select>
+      </div>
+      <div class="fg"><label>Modelo de Manutenção</label>
+       <select id="prev-modelo" onchange="carregarTarefasPreventiva()"><option value="">Selecione...</option></select>
+      </div>
+      <div class="fg"><label>Data Execução</label>
+        <input type="text" id="prev-dt_disp" class="date-mask" placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" oninput="dateMaskInput(this)">
+        <input type="date" id="prev-dt" onchange="sv('prev-dt',this.value)" style="display:none">
+      </div>
+      <div class="fg"><label>Manutentor</label><input type="text" id="prev-mn" placeholder="Nome"></div>
+     </div>
+     <div class="fg-row fg-3">
+      <div class="fg"><label>Hora Início</label><input type="time" id="prev-hi"></div>
+      <div class="fg"><label>Hora Fim</label><input type="time" id="prev-hf"></div>
+     </div>
+     <input type="hidden" id="prev-periodo" value="Mensal">
+    </div>
+    <div id="prev-body"></div>
+    <div class="fa">
+     <button class="btn btn-p" onclick="salvarPreventiva()" style="display:none">💾 Salvar Preventiva</button>
+    </div>
+   </div>
+
+<!-- PÁGINA: ANÁLISE DE CAUSA RAIZ (admin) -->
+<div class="pg" id="pg-analise-causa-raiz">
+ <div class="ph">
+  <div class="pt"><small>PCM · Qualidade</small>Análise de Causa Raiz</div>
+  <button class="btn btn-sm btn-p" onclick="abrirNovoRACR()">+ Novo RAC</button>
+ </div>
+ <div class="alert" id="al-racr"></div>
+ <div class="card">
+  <div class="card-t">RACRs Abertos</div>
+  <div class="tw"><table><thead><tr>
+   <th>ID</th><th>Data</th><th>Equipamento</th><th>Falha</th><th>Causa Raiz</th><th>Status</th><th>Ações</th>
+  </tr></thead><tbody id="tb-racr-abertos"></tbody></table></div>
+ </div>
+ <div class="card" style="margin-top:20px">
+  <div class="card-t">RACRs Fechados</div>
+  <div class="tw"><table><thead><tr>
+   <th>ID</th><th>Data</th><th>Equipamento</th><th>Data Fechamento</th><th>Ações</th>
+  </tr></thead><tbody id="tb-racr-fechados"></tbody></table></div>
  </div>
 </div>
 
-<!-- ══ MODAIS (fora do #app — precisam renderizar mesmo com #app
-     escondido, ex: troca de senha obrigatória logo após o login) ══ -->
-
-<div id="m-troca-senha-obrigatoria" class="mb">
-  <div class="modal" style="max-width:340px">
-    <div class="card-t">Defina sua nova senha</div>
-    <p style="color:var(--txt3);font-size:13px">
-      Sua senha foi resetada. Defina uma senha nova antes de continuar —
-      só você vai saber essa senha depois disso, nem o admin.
-    </p>
-    <div class="fg"><label>Nova senha</label><input id="tso-nova" type="password"></div>
-    <div class="fg"><label>Confirmar nova senha</label><input id="tso-confirma" type="password"></div>
-    <button class="btn btn-p btn-fl" onclick="confirmarTrocaSenhaObrigatoria()">Confirmar</button>
-  </div>
+<!-- COMPRAS — SOLICITAÇÃO -->
+<div class="pg" id="pg-compras-solicitacao">
+  <div class="ph"><div class="pt"><small>PCM · Compras</small>Solicitação de Compras</div></div>
+  <div id="pg-compras-solicitacao-body"></div>
 </div>
 
-<div id="m-fechar-chamado" class="mb">
-  <div class="modal" style="max-width:420px">
-    <div class="card-t">Concluir Ordem de Serviço</div>
-    <input type="hidden" id="fch-id">
-    <div class="fg"><label>O que foi feito</label><textarea id="fch-descricao" placeholder="Descreva o serviço executado..."></textarea></div>
-    <div class="fg">
-      <label>Fotos do serviço (opcional)</label>
-      <div class="photo-zone" id="fch-fotos-drop">
-        <span style="color:var(--txt3)">📷 Clique ou arraste fotos aqui (pode escolher várias)</span>
-        <input type="file" id="fch-fotos-input" accept="image/*" multiple style="display:none">
+<!-- COMPRAS — ACOMPANHAMENTO -->
+<div class="pg" id="pg-compras-acompanhamento">
+  <div class="ph">
+    <div class="pt"><small>PCM · Compras</small>Acompanhamento de Compras</div>
+    <button class="btn btn-gh btn-sm" onclick="ComprasAcompanhamento.refresh()">⟳ Atualizar</button>
+  </div>
+  <div id="pg-compras-acompanhamento-body"></div>
+</div>
+
+<!-- MODAL DETALHE -->
+<div class="mb" id="m-det"><div class="modal">
+ <div class="mhd">
+  <div><div class="osdisp" id="md-n"></div><div class="mtit" id="md-t"></div></div>
+  <button class="mcl" onclick="closeM('m-det')">×</button>
+ </div>
+ <div id="md-b"></div>
+ <div class="wa-prev" id="md-wa" style="display:none"></div>
+ <button class="wa-cp" id="md-wa-btn" onclick="copyWA()" style="display:none">📋 Copiar para WhatsApp</button>
+ <button class="wa-cp" id="md-print-btn" onclick="imprimirDetOS()" style="display:none;background:#444;margin-top:6px">🖨️ Imprimir O.S.</button>
+ <button class="btn btn-p btn-sm" id="md-rac-btn" onclick="abrirRAC()" style="display:none;animation:pulse-color 1.1s ease-in-out infinite;">
+  🔴 GERAR RCA
+ </button>
+</div></div>
+
+<!-- MODAL CONCLUIR -->
+<div class="mb" id="m-con"><div class="modal">
+ <div class="mhd"><div class="mtit">Concluir Ordem de Serviço</div><button class="mcl" onclick="closeM('m-con')">×</button></div>
+ <div id="mc-inf"></div>
+ <div class="fg-row" style="margin-top:14px">
+  <div class="fg"><label>Manutentor</label><input type="text" id="mc-mn" placeholder="Nome"></div>
+  <div class="fg"><label>Data</label><input type="hidden" id="mc-dt"><input type="text" id="mc-dt_disp" class="date-mask" placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" oninput="dateMaskInput(this)"></div>
+  <div class="fg"><label>Hora Início</label><input type="time" id="mc-in"></div>
+  <div class="fg"><label>Hora Fim</label><input type="time" id="mc-fm"></div>
+  <div class="fg"><label>Tempo de Parada (min)</label><input type="number" id="mc-parada" placeholder="0" min="0"></div>
+  <div class="fg fg-full"><label>Serviço Executado</label><textarea id="mc-ds" placeholder="Descreva o que foi feito..."></textarea></div>
+ </div>
+ <div class="fa">
+  <button class="btn btn-gh" onclick="closeM('m-con')">Cancelar</button>
+  <button class="btn btn-g" onclick="concluir()">✓ Concluir</button>
+ </div>
+</div></div>
+
+<!-- MODAL RELATÓRIO -->
+<div class="mb" id="m-rel"><div class="modal" style="max-width:640px">
+ <div class="mhd"><div class="mtit">Relatório de Inspeção</div><button class="mcl" onclick="closeM('m-rel')">×</button></div>
+ <div class="insp-report" id="m-rel-b"></div>
+<button class="wa-cp" onclick="copyRel()">📋 Copiar para WhatsApp</button>
+<button class="wa-cp" onclick="imprimirInspDiaria()" style="background:#444;margin-top:6px">🖨️ Imprimir Inspeção</button>
+</div></div>
+  
+<!-- ══ MODAL RACR ══ -->
+<div class="mb" id="mb-racr">
+  <div class="modal" style="max-width:900px">
+    <div class="mhd">
+      <div class="mtit">🔴 RCA - Análise de Causa Raiz</div>
+      <div class="mcl" onclick="fecharRACR()">✕</div>
+    </div>
+    <!-- SEÇÃO 1: IDENTIFICAÇÃO -->
+    <div class="card">
+      <div class="card-t">1 - Identificação do Problema</div>
+      <div class="fg-row">
+        <div class="fg">
+          <label>SALA</label>
+          <select id="racr-sala" onchange="racrFiltrarMaq()">
+            <option value="">Selecione...</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>TAG/EQUIPAMENTO</label>
+          <select id="racr-equip">
+            <option value="">Selecione a sala</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>DATA</label>
+          <input type="hidden" id="racr-data">
+          <input type="text" id="racr-data_disp" class="date-mask" placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" oninput="dateMaskInput(this)">
+        </div>
+        <div class="fg">
+          <label>HORA DA PARADA</label>
+          <input type="time" id="racr-hora">
+        </div>
       </div>
-      <div id="fch-fotos-preview" style="margin-top:8px;display:flex;flex-wrap:wrap"></div>
     </div>
-    <div style="display:flex;gap:8px;margin-top:8px">
-      <button class="btn btn-p" onclick="salvarFechamentoChamado()">Concluir</button>
-      <button class="btn btn-gh" onclick="closeM('m-fechar-chamado')">Cancelar</button>
+    <!-- SEÇÃO 2: FALHA/DEFEITO -->
+    <div class="card">
+      <div class="card-t">2 - Falha / Defeito Identificado</div>
+      <div class="fg">
+        <label>Descrição da Falha</label>
+        <textarea id="racr-falha" placeholder="Descrever falha identificada..."></textarea>
+      </div>
+    </div>
+    <!-- EVIDÊNCIAS / FOTOS -->
+    <div class="card">
+      <div class="card-t">Evidências da Falha (fotos)</div>
+      <div id="racr-foto-drop" class="racr-foto-drop" onclick="document.getElementById('racr-foto-input').click()"
+           ondragover="event.preventDefault();this.classList.add('drag-over')"
+           ondragleave="this.classList.remove('drag-over')"
+           ondrop="event.preventDefault();this.classList.remove('drag-over');racrAddFotos(event.dataTransfer.files)">
+        📷 Clique para anexar fotos ou arraste aqui (máx. 4)
+        <input type="file" id="racr-foto-input" accept="image/*" multiple style="display:none" onchange="racrAddFotos(this.files);this.value=''">
+      </div>
+      <div id="racr-foto-preview" class="racr-foto-grid"></div>
+    </div>
+    <!-- SEÇÃO 3: CAUSA -->
+    <div class="card">
+      <div class="card-t">3 - Causa</div>
+      <div class="fg">
+        <label>Detalhamento da Causa</label>
+        <textarea id="racr-causa" placeholder="Análise detalhada da causa..."></textarea>
+      </div>
+    </div>
+    <!-- SEÇÃO 4: 5 PORQUÊS -->
+    <div class="card">
+      <div class="card-t">4 - Análise dos 5 Porquês</div>
+      <div class="fg">
+        <label>1º Porquê</label>
+        <input type="text" id="racr-p1">
+      </div>
+      <div class="fg">
+        <label>2º Porquê</label>
+        <input type="text" id="racr-p2">
+      </div>
+      <div class="fg">
+        <label>3º Porquê</label>
+        <input type="text" id="racr-p3">
+      </div>
+      <div class="fg">
+        <label>4º Porquê</label>
+        <input type="text" id="racr-p4">
+      </div>
+      <div class="fg">
+        <label>5º Porquê (Raiz)</label>
+        <input type="text" id="racr-p5">
+      </div>
+    </div>
+    <!-- SEÇÃO 5: AÇÃO IMEDIATA -->
+    <div class="card">
+      <div class="card-t">5 - Ação Imediata</div>
+      <div class="fg">
+        <textarea id="racr-imediata" placeholder="Ação imediata realizada..."></textarea>
+      </div>
+    </div>
+    <!-- SEÇÃO 6: AÇÃO PREVENTIVA -->
+    <div class="card">
+      <div class="card-t">6 - Ação Preventiva</div>
+      <div class="fg">
+        <textarea id="racr-preventiva" placeholder="Ação preventiva para evitar recorrência..."></textarea>
+      </div>
+    </div>
+    <!-- SEÇÃO 7: EQUIPE RESPONSÁVEL -->
+    <div class="card">
+      <div class="card-t">7 - Equipe Responsável</div>
+      <div class="fg">
+        <label>Resp. Produção</label>
+        <input type="text" id="racr-resp-prod">
+      </div>
+      <div class="fg">
+        <label>Resp. Manutenção</label>
+        <input type="text" id="racr-resp-manu">
+      </div>
+      <div class="fg">
+        <label>Executantes</label>
+        <input type="text" id="racr-exec">
+      </div>
+    </div>
+    <!-- BOTÕES -->
+    <div class="fa">
+      <button class="btn btn-gh" onclick="fecharRACR()">Cancelar</button>
+      <button class="btn btn-p" onclick="salvarRACR()">💾 Salvar RAC</button>
+      <button class="btn btn-p" onclick="imprimirRACR()">🖨️ Imprimir</button>
     </div>
   </div>
 </div>
+  
+  <!-- MODAL EDITAR -->
+  <div class="mb" id="m-edit"><div class="modal" style="max-width:400px">
+   <div class="mhd"><div class="mtit" id="me-t">Editar</div><button class="mcl" onclick="closeM('m-edit')">×</button></div>
+   <div id="me-b"></div>
+   <div class="fa">
+    <button class="btn btn-gh" onclick="closeM('m-edit')">Cancelar</button>
+    <button class="btn btn-p" onclick="salvarEdit()">Salvar</button>
+     </div>
+  </div></div>
+  
+  <script src="js/core.js"></script>
+  <script src="js/helpers.js"></script>
+  <script src="js/modais-helpers.js"></script>
+  <script src="js/utils-offline.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/os-planejadas.js"></script>
+  <script src="js/os-executadas.js"></script>
+  <script src="js/abertura-os.js"></script>
+  <script src="js/inspecao.js"></script>
+  <script src="js/ativos.js"></script>
+  <script src="js/usuarios.js"></script>
+  <script src="js/preventiva.js"></script>
+  <script src="js/racr.js"></script>
+  <script src="js/modulo-compras-solicitacao.js"></script>
+  <script src="js/modulo-compras-acompanhamento.js"></script>
+  <script src="js/manuais-senhas.js"></script>
+  
+<script>
+// ╔══════════════════════════════════════════════════════════════════╗
+// ║  SIGMAN Enterprise — JavaScript v4 (app principal)              ║
+// ║  config + API agora em js/core.js                               ║
+// ╚══════════════════════════════════════════════════════════════════╝
 
-<div id="m-novo-usuario" class="mb">
-  <div class="modal" style="max-width:380px">
-    <div class="card-t" id="mu-titulo">Novo Usuário</div>
-    <div class="fg" id="mu-login-field"><label>Login</label><input id="nu-login" type="text"></div>
-    <div class="fg"><label>Nome</label><input id="nu-nome" type="text"></div>
-    <div class="fg"><label>Perfil</label>
-      <select id="nu-tipo">
-        <option value="">Selecione...</option>
-        <option value="admin">Administração</option>
-        <option value="gerente_loja">Gerente de Loja</option>
-        <option value="manutentor">Manutenção</option>
-      </select>
-    </div>
-    <div class="fg"><label>Sites (separar por vírgula, ex: 1004,1017)</label><input id="nu-sites" type="text"></div>
-    <div class="fg"><label>Cargo</label><input id="nu-cargo" type="text"></div>
-    <div style="display:flex;gap:8px;margin-top:8px">
-      <button class="btn btn-p" onclick="salvarUsuario()">Salvar</button>
-      <button class="btn btn-gh" onclick="closeM('m-novo-usuario')">Cancelar</button>
-    </div>
-  </div>
-</div>
+// ══════════════════════════════════════════════════════════════════════
+// AUTENTICAÇÃO
+// ══════════════════════════════════════════════════════════════════════
+async function doLogin() {
+  const login = v('l-u').trim();
+  const senha = v('l-p').trim();
+  if (!login || !senha) { lAlert('Preencha usuário e senha.'); return; }
 
-<div id="m-novo-site" class="mb">
-  <div class="modal" style="max-width:340px">
-    <div class="card-t" id="ms-titulo">Nova Loja</div>
-    <div class="fg"><label>Código</label><input id="ns-codigo" type="text" placeholder="ex: 1030"></div>
-    <div class="fg"><label>Nome</label><input id="ns-nome" type="text" placeholder="ex: NOVO ENDEREÇO"></div>
-    <div style="display:flex;gap:8px;margin-top:8px">
-      <button class="btn btn-p" onclick="salvarSite()">Salvar</button>
-      <button class="btn btn-gh" onclick="closeM('m-novo-site')">Cancelar</button>
-    </div>
-  </div>
-</div>
+  // Tenta recarregar do Sheets se ainda não há usuários (ex: API lenta no startup)
+  if (!db.usuarios.length && typeof USE_API !== 'undefined' && USE_API) {
+    lAlert('Sincronizando…', 'ok');
+    try { await apiLoadAll(); } catch(e) {
+      lAlert('Não foi possível conectar ao Sheets. Usando cache local.', 'err');
+    }
+  }
 
-<div id="m-nova-planejada" class="mb">
-  <div class="modal" style="max-width:400px">
-    <div class="card-t" id="mp-titulo">Nova Planejada</div>
-    <div class="fg"><label>Site</label><select id="pl-site"></select></div>
-    <div class="fg"><label>Área</label><input id="pl-area" type="text" placeholder="ex: CÂMARAS FRIAS"></div>
-    <div class="fg"><label>Tipo</label><input id="pl-tipo" type="text" placeholder="ex: REFRIGERAÇÃO"></div>
-    <div class="fg"><label>Descrição</label><textarea id="pl-descricao" placeholder="O que precisa ser feito periodicamente..."></textarea></div>
-    <div class="fg"><label>Periodicidade</label>
-      <select id="pl-periodicidade">
-        <option value="">Selecione...</option>
-        <option value="Semanal">Semanal</option>
-        <option value="Mensal">Mensal</option>
-        <option value="Trimestral">Trimestral</option>
-        <option value="Semestral">Semestral</option>
-        <option value="Anual">Anual</option>
-      </select>
-    </div>
-    <div class="fg"><label>Próxima data</label><input id="pl-data" type="date"></div>
-    <div style="display:flex;gap:8px;margin-top:8px">
-      <button class="btn btn-p" onclick="salvarPlanejada()">Salvar</button>
-      <button class="btn btn-gh" onclick="closeM('m-nova-planejada')">Cancelar</button>
-    </div>
-  </div>
-</div>
+  if (!db.usuarios.length) {
+    lAlert('Nenhum usuário encontrado. Preencha a aba Usuarios no Google Sheets e recarregue.', 'err');
+    return;
+  }
 
-<!-- ══ SCRIPTS ══ -->
-<!-- Ordem não é mais crítica (mostrarPagina resolve render* por nome em
-     tempo de execução), mas mantemos core.js primeiro por clareza. -->
-<script src="js/core.js"></script>
-<script src="js/helpers.js"></script>
-<script src="js/modais-helpers.js"></script>
-<script src="js/utils-offline.js"></script>
-<script src="js/fotos.js"></script>
-<script src="js/ui-shell.js"></script>
-<script src="js/chamados.js"></script>
-<script src="js/usuarios.js"></script>
-<script src="js/sites.js"></script>
-<script src="js/planejadas.js"></script>
-<script src="js/dashboard.js"></script>
+  const user = db.usuarios.find(x => x.login === login && x.senha === senha);
+  if (!user) { lAlert('Usuário ou senha incorretos.'); return; }
+  if (user.ativo === false) { lAlert('Usuário desativado. Fale com a Administração.'); return; }
+
+  // Senha ainda é a padrão de reset — obriga a pessoa a definir uma nova antes de entrar.
+  if (user.senha === 'mudar123') {
+    exigirTrocaSenha(user);
+    return;
+  }
+
+  CU = user;
+  localStorage.setItem('sigman_sess', JSON.stringify({ login, senha, user }));
+  enterApp();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// TROCA OBRIGATÓRIA DE SENHA (após reset pelo admin)
+// ══════════════════════════════════════════════════════════════════════
+let _pendingLoginUser = null;
+
+function exigirTrocaSenha(user) {
+  _pendingLoginUser = user;
+  document.getElementById('lf-login').style.display = 'none';
+  document.getElementById('lf-troca-senha').style.display = 'block';
+  document.getElementById('tn-p1').value = '';
+  document.getElementById('tn-p2').value = '';
+}
+
+function cancelarTrocaSenha() {
+  _pendingLoginUser = null;
+  document.getElementById('lf-troca-senha').style.display = 'none';
+  document.getElementById('lf-login').style.display = 'block';
+}
+
+async function confirmarTrocaSenha() {
+  if (!_pendingLoginUser) { cancelarTrocaSenha(); return; }
+  const p1 = v('tn-p1');
+  const p2 = v('tn-p2');
+  if (!p1 || p1.length < 4) { lAlert('A senha precisa ter pelo menos 4 caracteres.'); return; }
+  if (p1 !== p2) { lAlert('As senhas não conferem.'); return; }
+  if (p1 === 'mudar123') { lAlert('Escolha uma senha diferente de "mudar123".'); return; }
+
+  const login = _pendingLoginUser.login;
+  const res = await apiUpdate('usuarios', login, 'Login', { Senha_Hash: p1 });
+  if (!res || !res.ok) { lAlert('Não foi possível salvar a nova senha (sem conexão). Tente novamente.'); return; }
+
+  const u = db.usuarios.find(x => x.login === login);
+  if (u) u.senha = p1;
+  CU = { ..._pendingLoginUser, senha: p1 };
+  localStorage.setItem('sigman_sess', JSON.stringify({ login, senha: p1, user: CU }));
+  _pendingLoginUser = null;
+  document.getElementById('lf-troca-senha').style.display = 'none';
+  document.getElementById('lf-login').style.display = 'block';
+  enterApp();
+}
+
+function doLogout() {
+  clearInterval(_pollTimer);
+  clearInterval(_dashTimer);
+  localStorage.removeItem('sigman_sess');
+  localStorage.removeItem('sigman_lastpage');
+  CU = null;
+  document.getElementById('app').classList.remove('on');
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('lf-login').style.display = 'block';
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// REVALIDAÇÃO DE SESSÃO — sessões já abertas (localStorage) não recheckavam
+// contra o Sheets. Isso significa que desativar um usuário ou resetar a
+// senha dele não tinha efeito em quem já estava logado num navegador.
+// Chamada após cada apiLoadAll(true,true) (carga inicial + polling a cada
+// 3 min) — derruba a sessão se: usuário sumiu, foi desativado, ou a senha
+// dele virou 'mudar123' por reset administrativo enquanto estava logado.
+// ══════════════════════════════════════════════════════════════════════
+function revalidarSessao() {
+  if (!CU) return;
+  const fresh = db.usuarios.find(x => x.login === CU.login);
+  if (!fresh || fresh.ativo === false || fresh.senha === 'mudar123') {
+    if (typeof showToast === 'function') {
+      showToast('Sua sessão foi encerrada (acesso alterado pela Administração). Faça login novamente.', 'war', 6000);
+    }
+    doLogout();
+  }
+}
+
+function lAlert(m,t='err') {
+  const el = document.getElementById('l-alert');
+  el.textContent = m; el.className = 'lalert '+t+' show';
+  setTimeout(()=>el.classList.remove('show'), 3500);
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ENTRAR NO APP
+// ══════════════════════════════════════════════════════════════════════
+function enterApp() {
+  clearInterval(_pollTimer);
+  clearInterval(_dashTimer);
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display   = 'none';
+  document.getElementById('app').classList.add('on');
+
+  const ini = CU.nome.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  document.getElementById('u-av').textContent = ini;
+  document.getElementById('u-nm').textContent = CU.nome;
+  document.getElementById('u-rl').textContent = ROLES[CU.tipo]?.label || CU.tipo;
+  document.getElementById('tb-stat').style.display = CU.tipo !== 'producao' ? 'flex' : 'none';
+
+  buildNav();
+  populateAll();
+  // Primeiro menu disponível - para PCM vai para planejamento
+  const firstMenu = ROLES[CU.tipo].menus[0];
+  const defaultPage = firstMenu === 'pcm' ? 'planejamento' : firstMenu;
+  const lastPage = localStorage.getItem('sigman_lastpage');
+  const lastPageValida = lastPage && document.querySelector(`[data-page="${lastPage}"]`);
+  showPage(lastPageValida ? lastPage : defaultPage);
+  updStats();
+  updateNavDots();
+
+  // Pré-preenche manutentor
+  if (CU.tipo !== 'producao') {
+    sv('ab-mn', CU.nome);
+    sv('insp-mn', CU.nome);
+    sv('insp-tmpl-mn', CU.nome);
+    sv('prev-mn', CU.nome);
+    sv('mc-mn', CU.nome);
+  }
+
+  // Inicia polling de atualização automática (só admin e manut)
+  if (CU.tipo !== 'producao') {
+    _pollTimer = setInterval(async () => {
+      await apiLoadAll(true, true);
+      revalidarSessao();
+      if (!CU) return;
+      updStats();
+      updateNavDots();
+    }, POLL_MS);
+  }
+}
+  
+// ══════════════════════════════════════════════════════════════════════
+// SIDEBAR / NAVEGAÇÃO
+// ══════════════════════════════════════════════════════════════════════
+const NAV = [
+  { id:'dashboard',      ic:'📊', lbl:'Dashboard'             },
+  { id:'planejadas',     ic:'📅', lbl:'O.S. Planejadas',  dot:true },
+  { id:'executadas',     ic:'✅', lbl:'O.S. Executadas'       },
+  { id:'abertura',       ic:'🔧', lbl:'Abertura de O.S.'      },
+  { id:'inspecao',       ic:'🔍', lbl:'Inspeção Diária'     },
+  { id:'pcm', ic:'📋', lbl:'PCM', sub:[
+      { id:'compras-solicitacao',    ic:'🛒', lbl:'Solicitação de Compras'},
+      { id:'compras-acompanhamento', ic:'📦', lbl:'Acompanhamento de Compras'},
+      { id:'planejamento',           ic:'📋', lbl:'Planejamento de O.S.' },
+      { id:'analise-causa-raiz',     ic:'📊', lbl:'Análise Causa Raiz'},
+      { id:'preventiva',             ic:'🔩', lbl:'Manutenção Preventiva'},      
+    ]
+  },
+  { id:'solicitacao',    ic:'📣', lbl:'Solicitação de O.S.', dot:true },
+  { id:'ativos',         ic:'🏭', lbl:'Ativos'                },
+  { id:'usuarios',       ic:'👥', lbl:'Usuários'              },
+  { id:'manuais-senhas', ic:'🔐', lbl:'Manuais e Senhas'      },
+];
+
+const LBLS = {
+  dashboard:'Dashboard', planejadas:'O.S. Planejadas', executadas:'O.S. Executadas',
+  abertura:'Abertura de O.S.', planejamento:'PCM — Planejamento de O.S.',
+  'analise-causa-raiz':'PCM — Análise de Causa Raiz',
+  solicitacao:'Solicitação de O.S.', inspecao:'Inspeção Diária',
+  ativos:'Ativos', usuarios:'Usuários', 'manuais-senhas':'Manuais e Senhas',
+  preventiva:'PCM — Manutenção Preventiva',
+  'compras-solicitacao':'PCM — Solicitação de Compras',
+  'compras-acompanhamento':'PCM — Acompanhamento de Compras'
+};
+
+let _pcmOpen = true; // PCM submenu aberto por padrão
+
+function buildNav() {
+  const nav = document.getElementById('sb-nav');
+  const ok  = ROLES[CU.tipo]?.menus || [];
+  nav.innerHTML = '';
+  NAV.filter(n => ok.includes(n.id)).forEach(n => {
+    if (n.sub) {
+      // Submenu group
+      const grp = document.createElement('div');
+      grp.className = 'nv-grp' + (_pcmOpen ? ' nv-grp-open' : '');
+      grp.innerHTML = `<div class="nv-grp-hd" onclick="togglePCM(this)">
+        <div class="nv-ic">${n.ic}</div>
+        <div class="nv-lbl sc">${n.lbl}</div>
+        <span class="nv-grp-chev">▶</span>
+      </div>
+      <div class="nv-sub-items">
+        ${n.sub.filter(s => !s.admin || CU.tipo==='administracao').map(s=>`
+          <div class="nv-sub-item" data-page="${s.id}" onclick="showPage('${s.id}');closeSB()">
+            <span>${s.ic}</span><span>${s.lbl}</span>
+          </div>`).join('')}
+      </div>`;
+      nav.appendChild(grp);
+    } else {
+      const el = document.createElement('div');
+      el.className = 'nv-item';
+      el.setAttribute('data-page', n.id);
+      el.setAttribute('data-label', n.lbl);
+      el.onclick = () => { showPage(n.id); closeSB(); };
+      el.innerHTML = `<div class="nv-ic">${n.ic}</div><div class="nv-lbl sc">${n.lbl}</div>${n.dot?'<span class="nv-dot" id="dot-'+n.id+'"></span>':''}`;
+      nav.appendChild(el);
+    }
+  });
+  updateNavDots();
+}
+
+function togglePCM(el) {
+  const grp = el.parentElement;
+  grp.classList.toggle('nv-grp-open');
+  _pcmOpen = grp.classList.contains('nv-grp-open');
+}
+
+function updateNavDots() {
+  // Dot para O.S. Planejadas
+  const dotPl = document.getElementById('dot-planejadas');
+  if (dotPl) {
+    const atrasadas = db.planejadas.filter(p => p.status === 'Atrasada').length;
+    const abertas   = db.planejadas.filter(p => p.status !== 'Concluída' && p.status !== 'Executada').length;
+    const urgentes  = db.planejadas.filter(p => (p.prioridade === '1' || p.prioridade === 'Alta') && p.status !== 'Concluída').length;
+    if (atrasadas > 0 || urgentes > 0) { dotPl.className='nv-dot nd-red'; }
+    else if (abertas > 0)              { dotPl.className='nv-dot nd-org'; }
+    else                               { dotPl.className='nv-dot nd-grn'; }
+  }
+  // Dot para Solicitações
+  const dotSol = document.getElementById('dot-solicitacao');
+  if (dotSol) {
+    const urgSol = db.solicitacoes.filter(s => (s.prioridade==='1'||s.prioridade==='Alta') && s.status!=='Executada' && s.status!=='Concluída').length;
+    const pendSol = db.solicitacoes.filter(s => s.status==='Não Executada').length;
+    if (urgSol > 0)        { dotSol.className='nv-dot nd-red'; }
+    else if (pendSol > 0)  { dotSol.className='nv-dot nd-org'; }
+    else                   { dotSol.className='nv-dot nd-grn'; }
+  }
+}
+
+function showPage(pid) {
+  localStorage.setItem('sigman_lastpage', pid);
+  document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.nv-item').forEach(n => n.classList.remove('act'));
+  document.querySelectorAll('.nv-sub-item').forEach(n => n.classList.remove('act'));
+  const pg = document.getElementById('pg-' + pid);
+  if (pg) pg.classList.add('on');
+  const ni = document.querySelector(`.nv-item[data-page="${pid}"]`);
+  if (ni) ni.classList.add('act');
+  const si = document.querySelector(`.nv-sub-item[data-page="${pid}"]`);
+  if (si) si.classList.add('act');
+  document.getElementById('tb-t').textContent = LBLS[pid] || '';
+
+  // Dashboard: ligar/desligar timer 15s
+  clearInterval(_dashTimer);
+  if (pid === 'dashboard') { renderDash(); apiLoadAll(true).then(renderDash).catch(()=>{}); if (_dashAutoRf) startDashTimer(); }
+  if (pid === 'planejadas')  { renderPlan();    apiLoadAll(true).then(renderPlan).catch(()=>showToast('Erro ao sincronizar Planejadas.','er')); }
+  if (pid === 'executadas')  { renderExec();    apiLoadAll(true).then(renderExec).catch(()=>showToast('Erro ao sincronizar Executadas.','er')); }
+  if (pid === 'solicitacao') { renderSol();     apiLoadAll(true).then(renderSol).catch(()=>showToast('Erro ao sincronizar Solicitações.','er')); }
+  if (pid === 'ativos')      { renderAtivos();  apiLoadAll(true).then(renderAtivos).catch(()=>showToast('Erro ao sincronizar Ativos.','er')); }
+  if (pid === 'usuarios')      renderUsuarios();
+  if (pid === 'inspecao')      { buildInsp(); apiLoadInspecoes().then(buildInsp).catch(()=>{}); }
+  if (pid === 'preventiva')    initPreventiva();
+  if (pid === 'analise-causa-raiz') { renderRACR(); apiLoadRacs().then(renderRACR).catch(()=>{}); }
+  if (pid === 'manuais-senhas') { initManuaisSenhas(); apiLoadManuaisSenhas().then(renderMSLista).catch(()=>{}); }
+  if (pid === 'abertura') {
+    populateSalas('ab'); sv('ab-dt', today());
+    if (CU.tipo !== 'producao') sv('ab-mn', CU.nome);
+  }
+  if (pid === 'planejamento') { populateSalas('pl'); }
+  if (pid === 'compras-solicitacao') {
+    const salasFormatted = db.salas.map(s => ({ Nome: s, Ativo: 'sim' }));
+    const maquinasFormatted = db.maquinas.map(m => ({ Nome: m.nome, Sala: m.sala, Tag: m.tag, Ativo: 'sim' }));
+    ComprasSolicitacao.render(
+      document.getElementById('pg-compras-solicitacao'),
+      { cache: { salas: salasFormatted, maquinas: maquinasFormatted },
+        user: { Nome: CU.nome, Login: CU.login },
+        gsUrl: API_URL }
+    );
+  }
+  if (pid === 'compras-acompanhamento') {
+    ComprasAcompanhamento.render(
+      document.getElementById('pg-compras-acompanhamento'),
+      { cache: {},
+        user: { Nome: CU.nome, Login: CU.login, Tipo_Acesso: CU.tipo },
+        gsUrl: API_URL }
+    );
+  }
+  updateNavDots();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// DASHBOARD — AUTO REFRESH 15s
+// ══════════════════════════════════════════════════════════════════════
+function startDashTimer() {
+  clearInterval(_dashTimer);
+  _dashTimer = setInterval(async () => {
+    const act = document.querySelector('.nv-item.act, .nv-sub-item.act');
+    const pid  = act ? act.getAttribute('data-page') : null;
+    if (pid === 'dashboard') {
+      await apiLoadAll(true, true);
+      await _refreshComprasCache();
+      updateNavDots();
+      const lbl = document.getElementById('rf-lbl');
+      if (lbl) lbl.textContent = 'Última atualização: ' + new Date().toLocaleTimeString('pt-BR');
+    }
+  }, 15000);
+}
+
+function toggleDashRefresh() {
+  _dashAutoRf = !_dashAutoRf;
+  const btn = document.getElementById('rf-btn');
+  const dot = document.getElementById('rf-dot');
+  const lbl = document.getElementById('rf-lbl');
+  if (_dashAutoRf) {
+    startDashTimer();
+    if (btn) { btn.textContent = '⏸ Desligar'; btn.style.background='rgba(31,217,136,.15)'; btn.style.color='var(--grn)'; btn.style.borderColor='rgba(31,217,136,.4)'; }
+    if (dot) dot.className = 'rf-dot';
+    if (lbl) lbl.textContent = 'Auto-atualização a cada 15s';
+  } else {
+    clearInterval(_dashTimer);
+    if (btn) { btn.textContent = '▶ Ligar 15s'; btn.style.background='var(--surf3)'; btn.style.color='var(--txt2)'; btn.style.borderColor='var(--bord)'; }
+    if (dot) dot.className = 'rf-dot off';
+    if (lbl) lbl.textContent = 'Auto-atualização desligada';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// FOTO — Preview e upload (Google Drive via Apps Script)
+// ══════════════════════════════════════════════════════════════════════
+let _photoFile = null;
+let _photoBase64 = null;
+
+function previewPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      // Dimensão máxima: 1920×1080, compressão até ~1 MB
+      const MAX_W = 1920, MAX_H = 1080, MAX_BYTES = 1 * 1024 * 1024;
+      let w = img.width, h = img.height;
+
+      // Redimensiona mantendo proporção se necessário
+      if (w > MAX_W || h > MAX_H) {
+        const ratio = Math.min(MAX_W / w, MAX_H / h);
+        w = Math.round(w * ratio);
+        h = Math.round(h * ratio);
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+
+      // Comprime em JPEG reduzindo qualidade até caber em 1 MB
+      let quality = 0.92;
+      let dataUrl = canvas.toDataURL('image/jpeg', quality);
+      while (dataUrl.length * 0.75 > MAX_BYTES && quality > 0.4) {
+        quality -= 0.06;
+        dataUrl = canvas.toDataURL('image/jpeg', quality);
+      }
+
+      _photoBase64 = dataUrl.split(',')[1];
+      // Cria um File redimensionado para exibir o tamanho real ao usuário
+      const byteSize = Math.round(_photoBase64.length * 0.75 / 1024);
+
+      const prev = document.getElementById('ab-photo-preview');
+      prev.innerHTML = `
+        <img src="${dataUrl}" class="photo-thumb" alt="Foto OS">
+        <div style="font-size:14px;color:var(--txt2)">
+          <strong>${file.name}</strong><br>
+          <span style="color:var(--txt3)">${byteSize} KB (redimensionado)</span><br>
+          <button class="btn btn-sm" onclick="removePhoto(event)"
+            style="margin-top:6px;background:rgba(196,18,48,.12);color:#ff4d65;
+                   border:1px solid rgba(196,18,48,.3);padding:3px 8px">
+            🗑 Remover
+          </button>
+        </div>`;
+
+      // _photoFile continua sendo o original (só usado para o nome/extensão)
+      _photoFile = file;
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePhoto(e) {
+  e.stopPropagation();
+  _photoFile = null; _photoBase64 = null;
+  document.getElementById('ab-photo-input').value = '';
+  document.getElementById('ab-photo-preview').innerHTML = '<span style="color:var(--txt3);font-size:15px">📷 Clique para anexar foto</span>';
+}
+
+async function uploadFotoOS(numero) {
+  if (!_photoBase64 || !USE_API) return null;
+  try {
+    const ext = (_photoFile.name.split('.').pop() || 'jpg').toLowerCase();
+    const resp = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'uploadFoto',
+        numero,
+        fileName: numero + '.' + ext,
+        mimeType: _photoFile.type || 'image/jpeg',
+        base64: _photoBase64
+      })
+    });
+    const r = await resp.json();
+    return r.ok ? r.fileUrl : null;
+  } catch(e) { console.warn('Foto não enviada:', e); return null; }
+}
+
+function toggleSB() {
+  const sb = document.getElementById('sb');
+  if (window.innerWidth <= 768) {
+    sb.classList.toggle('mob');
+    document.getElementById('sb-ov').style.display = sb.classList.contains('mob') ? 'block' : 'none';
+  } else { sb.classList.toggle('col'); }
+}
+function closeSB() {
+  document.getElementById('sb').classList.remove('mob');
+  document.getElementById('sb-ov').style.display = 'none';
+}
+function toggleTheme() {
+  const h = document.documentElement;
+  const d = h.getAttribute('data-theme') === 'dark';
+  h.setAttribute('data-theme', d ? 'light' : 'dark');
+  document.getElementById('th-btn').textContent = d ? '☀️' : '🌙';
+  localStorage.setItem('sigman_theme', d ? 'light' : 'dark');
+}
+function loadTheme() {
+  const t = localStorage.getItem('sigman_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  const b = document.getElementById('th-btn');
+  if (b) b.textContent = t === 'dark' ? '🌙' : '☀️';
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// SELECTS — popula dropdowns
+// ══════════════════════════════════════════════════════════════════════
+function populateAll() {
+  ['ab','pl','sol'].forEach(p => populateSalas(p));
+  populateAtMaqSala();
+  populateSalaFilter('fe-sl');
+  populateSalaFilter('insp-tmpl-sala');
+}
+
+function populateSalas(p) {
+  const sel = document.getElementById(p + '-sl');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Selecione...</option>';
+  [...db.salas].sort().forEach(s => sel.innerHTML += `<option value="${s}">${s}</option>`);
+  sel.innerHTML += '<option value="__outros__">Outros (não listado)</option>';
+  if (cur) sel.value = cur;
+}
+
+function fMaq(p) {
+  const sala = v(p + '-sl');
+  const sel  = document.getElementById(p + '-mq');
+  sel.innerHTML = '<option value="">Selecione a máquina...</option>';
+  if (sala === '__outros__') {
+    sel.innerHTML += '<option value="__outros__">Outros (não listado)</option>';
+    return;
+  }
+  [...db.maquinas].filter(m => m.sala === sala)
+    .sort((a,b) => a.nome.localeCompare(b.nome))
+    .forEach(m => { sel.innerHTML += `<option value="${m.nome}">${m.nome}${m.tag?' ('+m.tag+')':''}</option>`; });
+  sel.innerHTML += '<option value="__outros__">Outros (não listado)</option>';
+}
+
+function populateAtMaqSala() {
+  const sel = document.getElementById('at-ms');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Selecione...</option>';
+  [...db.salas].sort().forEach(s => sel.innerHTML += `<option value="${s}">${s}</option>`);
+}
+
+function populateSalaFilter(id) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Todas as Salas</option>';
+  [...db.salas].sort().forEach(s => sel.innerHTML += `<option value="${s}">${s}</option>`);
+  if (cur) sel.value = cur;
+}
+
+function irParaCard(pageId) {
+  const ok = ROLES[CU.tipo]?.menus || [];
+  let requiredId = pageId;
+  let subEntry = null;
+  if (!NAV.find(n => n.id === pageId)) {
+    for (const n of NAV) {
+      if (n.sub) { const s = n.sub.find(x => x.id === pageId); if (s) { requiredId = n.id; subEntry = s; break; } }
+    }
+  }
+  if (subEntry && subEntry.admin && CU.tipo !== 'administracao') return;
+  if (!ok.includes(requiredId)) return; // sem permissão, clique não faz nada
+  showPage(pageId);
+}
+
+function goToPage(pageId) {
+  document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
+  document.getElementById('pg-' + pageId).classList.add('on');
+  document.getElementById('tb-t').textContent = pageId === 'salas-status' ? 'Status de Salas' : 'Dashboard';
+}
+
+init();
+</script>
 </body>
 </html>
