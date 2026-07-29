@@ -15,21 +15,17 @@ const CACHE_TTL_MS = 180000; // TTL do readAll: só busca novamente após 3 min
 // BANCO DE DADOS LOCAL (cache em memória + localStorage)
 // ══════════════════════════════════════════════════════════════════════
 let db = {
-  salas: [],
-  maquinas: [],
+  lojas: [],
+  areas: [],
   ordens: [],
   planejadas: [],
   solicitacoes: [],
-  inspecoes: [],
   usuarios: [],
   configuracoes: {
-    horas_turno_1: 7.1, horas_turno_2: 7.1, horas_turno_3: 0,
-    meta_disponibilidade: 91, meta_performance: 90, meta_qualidade: 99
+    horas_turno_1: 7.1, horas_turno_2: 7.1, horas_turno_3: 0
   },
-  osC:1, plC:1, solC:1, inspC:1,
-  historico: [],
-  racs: [],
-  manuaisSenhas: []
+  osC:1, plC:1, solC:1,
+  historico: []
 };
 
 // ══════════════════════════════════════════════════════════════════════
@@ -38,19 +34,15 @@ let db = {
 const ROLES = {
   administracao: {
     label: 'Administração',
-    menus: ['dashboard','planejadas','executadas','abertura','inspecao', 'pcm', 'solicitacao','ativos','usuarios','manuais-senhas']
+    menus: ['dashboard','planejadas','executadas','abertura','pcm','solicitacao','ativos','usuarios']
   },
   manutencao: {
     label: 'Manutenção',
-    menus: ['dashboard','planejadas','executadas','abertura','inspecao','manuais-senhas']
+    menus: ['dashboard','planejadas','executadas','abertura']
   },
-  producao: {
-    label: 'Produção',
+  gerente: {
+    label: 'Gerente',
     menus: ['solicitacao']
-  },
-  diretoria: {
-    label: 'Diretoria',
-    menus: ['dashboard','executadas','solicitacao']
   }
 };
 
@@ -237,8 +229,8 @@ async function apiLoadAll(silent = false, force = false) {
     db.ordens = d.ordens.map(r => ({
       id: crypto.randomUUID(),
       numero: normStr(r.OS_Numero),
-      sala: normStr(r.Sala),
-      maq: normStr(r.Maquina),
+      loja: normStr(r.Loja),
+      maq: normStr(r.Area),
       tipo: normStr(r.Tipo),
       prioridade: normStr(r.Prioridade),
       manut: normStr(r.Manutentor),
@@ -249,7 +241,6 @@ async function apiLoadAll(silent = false, force = false) {
       paradaMin: Number(r.Tempo_Parada_Min) || 0,
       prob: normStr(r.Problema),
       acao: normStr(r.Acao_Executada),
-      acaoPrev: normStr(r.Acao_Preventiva||''),
       fotoUrl: normStr(r.Foto_URL||''),
       origem: normStr(r.Origem),
       origemNum: normStr(r.OS_Origem_Ref),
@@ -264,12 +255,11 @@ async function apiLoadAll(silent = false, force = false) {
     db.planejadas = d.planejadas.map(r => ({
       id: crypto.randomUUID(),
       numero: normStr(r.PL_Numero),
-      sala: normStr(r.Sala),
-      maq: normStr(r.Maquina),
+      loja: normStr(r.Loja),
+      maq: normStr(r.Area),
       tipo: normStr(r.Tipo),
       prioridade: normStr(r.Prioridade),
       prazo: normDate(r.Prazo_Limite),
-      horasTurno: Number(r.Horas_Turno) || 10,
       desc: normStr(r.Descricao_Planejada),
       status: normStr(r.Status) || 'Pendente',
       manut: normStr(r.Manutentor_Exec),
@@ -289,8 +279,8 @@ async function apiLoadAll(silent = false, force = false) {
     db.solicitacoes = d.solicitacoes.map(r => ({
       id: crypto.randomUUID(),
       numero: normStr(r.SOL_Numero),
-      sala: normStr(r.Sala),
-      maq: normStr(r.Maquina),
+      loja: normStr(r.Loja),
+      maq: normStr(r.Area),
       tipo: normStr(r.Tipo),
       prioridade: normStr(r.Prioridade),
       desc: normStr(r.Descricao),
@@ -331,22 +321,19 @@ async function apiLoadAll(silent = false, force = false) {
     db.usuarios = localUsers;
   }
 
-  // Ativos (Salas e Máquinas) — substitui completamente pelo Sheets (reflete exclusões)
-  if (d.salas && d.salas.length) {
-    db.salas = d.salas.filter(r => r.Ativo !== 'nao').map(r => normStr(r.Nome)).filter(Boolean);
-    db.salas.sort();
+  // Ativos (Lojas e Áreas) — substitui completamente pelo Sheets (reflete exclusões)
+  if (d.lojas && d.lojas.length) {
+    db.lojas = d.lojas.filter(r => r.Ativo !== 'nao').map(r => normStr(r.Nome)).filter(Boolean);
+    db.lojas.sort();
   }
-  if (d.maquinas && d.maquinas.length) {
-    db.maquinas = d.maquinas.filter(r => r.Ativo !== 'nao').map(r => ({
-      id: normStr(r.ID_Maquina) || (normStr(r.Sala)+'_'+normStr(r.Nome)).replace(/\s+/g,'_'),
+  if (d.areas && d.areas.length) {
+    db.areas = d.areas.filter(r => r.Ativo !== 'nao').map(r => ({
+      id: normStr(r.ID_Area) || (normStr(r.Loja)+'_'+normStr(r.Nome)).replace(/\s+/g,'_'),
       nome: normStr(r.Nome),
-      sala: normStr(r.Sala),
-      tag: normStr(r.Tag),
-      criticidade: normStr(r.Criticidade) || '3',
-      periodicidade: normStr(r.Periodicidade_Preventiva) || 'Mensal',
-      modeloPadrao: normStr(r.ModeloPadrao||'')
+      loja: normStr(r.Loja),
+      tag: normStr(r.Tag)
     }));
-    db.maquinas.sort((a,b) => (a.sala+a.nome).localeCompare(b.sala+b.nome));
+    db.areas.sort((a,b) => (a.loja+a.nome).localeCompare(b.loja+b.nome));
   }
 
   // Configurações
@@ -360,74 +347,16 @@ async function apiLoadAll(silent = false, force = false) {
   if (!silent) console.log('[SIGMAN] ✅ Dados carregados do Sheets');
 }
 
-// ── Lazy loaders — chamados sob demanda ao entrar nas páginas ──────────────
-async function apiLoadInspecoes() {
-  if (!USE_API) return;
-  const json = await apiGet({ action: 'readInspecoes' });
-  if (!json?.ok || !json.data?.length) return;
-  const map = {};
-  json.data.forEach(r => {
-    const key = normDate(r.Data) + '|' + normStr(r.Turno) + '|' + normStr(r.Manutentor);
-    if (!map[key]) map[key] = {
-      id: normStr(r.ID_Inspecao) || key,
-      data: normDate(r.Data),
-      turno: normStr(r.Turno),
-      horasTurno: Number(r.Horas_Turno) || 10,
-      manut: normStr(r.Manutentor),
-      itens: []
-    };
-    map[key].itens.push({
-      sala: normStr(r.Sala), equip: normStr(r.Equipamento),
-      sub: normStr(r.Sub_Item), status: normStr(r.Status),
-      hora: normTime(r.Hora), obs: normStr(r.Observacoes)
-    });
-  });
-  db.inspecoes = Object.values(map);
-  saveDB();
-}
-
-async function apiLoadRacs() {
-  if (!USE_API) return;
-  const json = await apiGet({ action: 'readRacs' });
-  if (!json?.ok || !json.data?.length) return;
-  db.racs = json.data.map(r => ({
-    id: normStr(r.ID),
-    osNumero: normStr(r.OS_Numero),
-    maquina: normStr(r.Equipamento),
-    sala: normStr(r.Sala),
-    criticidade: Number(r.Criticidade) || 3,
-    tempoParada: Number(r.Tempo_Parada_Min) || 0,
-    limiteMin: Number(r.Limite_Min) || 0,
-    falha: normStr(r.Falha),
-    causaRaiz: normStr(r.Causa_Raiz),
-    why1: normStr(r.Why1), why2: normStr(r.Why2), why3: normStr(r.Why3),
-    why4: normStr(r.Why4), why5: normStr(r.Why5),
-    acaoImediata: normStr(r.Acao_Imediata),
-    acaoPreventiva: normStr(r.Acao_Preventiva),
-    respProd: normStr(r.Resp_Producao),
-    respManu: normStr(r.Resp_Manutencao),
-    executantes: normStr(r.Executantes),
-    fotos: (() => { try { return JSON.parse(r.Fotos || '[]'); } catch { return []; } })(),
-    status: normStr(r.Status) || 'Aberto',
-    dataAbertura: normDate(r.Data_Abertura),
-    dataBaixa: normDate(r.Data_Fechamento),
-    fechadoPor: normStr(r.Fechado_Por),
-    criadoEm: normStr(r.Data_Criacao)
-  }));
-  saveDB();
-}
-
 // ── localStorage ───────────────────────────────────────────────────────
 function saveDB() {
   try {
     localStorage.setItem('sigman_v4', JSON.stringify({
-      salas: db.salas, maquinas: db.maquinas,
+      lojas: db.lojas, areas: db.areas,
       ordens: db.ordens, planejadas: db.planejadas,
-      solicitacoes: db.solicitacoes, inspecoes: db.inspecoes,
-      osC: db.osC, plC: db.plC, solC: db.solC, inspC: db.inspC,
+      solicitacoes: db.solicitacoes,
+      osC: db.osC, plC: db.plC, solC: db.solC,
       historico: db.historico,
-      configuracoes: db.configuracoes,
-      racs: db.racs
+      configuracoes: db.configuracoes
     }));
   } catch(e) {}
 }

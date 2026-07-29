@@ -8,10 +8,10 @@ function verDet(id,tipo) {
     :db.planejadas.find(p=>p.numero===id);
   if(!item)return;
   document.getElementById('md-n').textContent=item.numero;
-  document.getElementById('md-t').textContent=`${item.sala} · ${item.maq}`;
+  document.getElementById('md-t').textContent=`${item.loja} · ${item.maq}`;
   let rows=`
-    <div class="dr"><span class="dl">Sala</span><span class="dv">${item.sala}</span></div>
-    <div class="dr"><span class="dl">Máquina</span><span class="dv">${item.maq}</span></div>
+    <div class="dr"><span class="dl">Loja</span><span class="dv">${item.loja}</span></div>
+    <div class="dr"><span class="dl">Área</span><span class="dv">${item.maq}</span></div>
     <div class="dr"><span class="dl">Tipo</span><span class="dv">${tipoBadge(item.tipo)}</span></div>
     <div class="dr"><span class="dl">Prioridade</span><span class="dv">${prio(item.prioridade)}</span></div>`;
   const waEl=document.getElementById('md-wa'),waBtn=document.getElementById('md-wa-btn');
@@ -23,9 +23,8 @@ function verDet(id,tipo) {
       ${item.paradaMin?`<div class="dr"><span class="dl">Tempo de Parada</span><span class="dv">${item.paradaMin}min</span></div>`:''}
       <div class="dr"><span class="dl">Problema</span><span class="dv">${item.prob||'—'}</span></div>
       <div class="dr"><span class="dl">Ação Executada</span><span class="dv">${item.acao||'—'}</span></div>
-      ${item.acaoPrev?`<div class="dr"><span class="dl">Ação Preventiva</span><span class="dv">${item.acaoPrev}</span></div>`:''}
       ${item.fotoUrl?`<div class="dr" style="flex-direction:column;gap:8px"><span class="dl">📷 Foto</span><span class="dv"><div class="foto-wrap"><img src="${driveThumb(item.fotoUrl)}" style="max-width:100%;max-height:220px;border-radius:var(--rs);object-fit:contain;border:1px solid var(--bord);cursor:zoom-in" alt="Foto OS" onclick="abrirFotoImprimir('${item.fotoUrl}')"><button class="foto-print-btn" title="Imprimir / Salvar como PDF" onclick="abrirFotoImprimir('${item.fotoUrl}')">🖨️</button></div></span></div>`:''} ${item.origem!=='direta'?`<div class="dr"><span class="dl">OS Origem</span><span class="dv" style="color:var(--red)">${item.origemNum}</span></div>`:''}`;
-    const wa=`*${item.numero} — Ordem de Serviço*\n\n*Sala:* ${item.sala}\n*Máquina:* ${item.maq}\n*Problema:* ${item.prob||'—'}\n*Ação:* ${item.tipo}\n*Prioridade:* ${item.prioridade}\n*Tempo:* ${item.ini||'?'} - ${item.fim||'?'} (${item.durMin||'?'}min)\n*Parada:* ${item.paradaMin||'?'}min\n\n${item.acao||''}\n\n_Manutentor: ${item.manut}_`;
+    const wa=`*${item.numero} — Ordem de Serviço*\n\n*Loja:* ${item.loja}\n*Área:* ${item.maq}\n*Problema:* ${item.prob||'—'}\n*Ação:* ${item.tipo}\n*Prioridade:* ${item.prioridade}\n*Tempo:* ${item.ini||'?'} - ${item.fim||'?'} (${item.durMin||'?'}min)\n*Parada:* ${item.paradaMin||'?'}min\n\n${item.acao||''}\n\n_Manutentor: ${item.manut}_`;
     waEl.textContent=wa;waEl.style.display='block';waBtn.style.display='inline-block';
   } else {
     rows+=`
@@ -39,13 +38,6 @@ function verDet(id,tipo) {
   document.getElementById('md-b').innerHTML=rows;
   _curDet={item,tipo};
   document.getElementById('md-print-btn').style.display='inline-block';
-  // Mostrar botão GERAR RCA apenas se precisaRAC()
-  const racBtn = document.getElementById('md-rac-btn');
-  if (tipo === 'os' && precisaRAC(item)) {
-    racBtn.style.display = 'inline-block';
-  } else {
-    racBtn.style.display = 'none';
-  }
   openM('m-det');
 }
 
@@ -84,8 +76,8 @@ h1{font-size:17px;color:#C41230;margin-bottom:2px}
   <div style="text-align:right;font-size:10px;color:#666">Doc: SIGMAN<br>Rev: 01</div>
 </div>
 <div class="info-grid">
-  <div class="info-box"><div class="info-label">Sala / Local</div><div class="info-val">${item.sala}</div></div>
-  <div class="info-box"><div class="info-label">Máquina / Ativo</div><div class="info-val">${item.maq}</div></div>
+  <div class="info-box"><div class="info-label">Loja / Local</div><div class="info-val">${item.loja}</div></div>
+  <div class="info-box"><div class="info-label">Área / Ativo</div><div class="info-val">${item.maq}</div></div>
   <div class="info-box"><div class="info-label">Tipo</div><div class="info-val">${item.tipo}</div></div>
   <div class="info-box"><div class="info-label">Prioridade</div><div class="info-val">${item.prioridade||'—'}</div></div>
   ${tipo==='os'?`
@@ -103,7 +95,6 @@ h1{font-size:17px;color:#C41230;margin-bottom:2px}
 ${tipo==='os'?`
 <div class="section"><div class="section-title">Problema / Ocorrência</div><div class="section-content">${item.prob||'—'}</div></div>
 <div class="section"><div class="section-title">Ação / Serviço Executado</div><div class="section-content">${item.acao||'—'}</div></div>
-${item.acaoPrev?`<div class="section"><div class="section-title">Ação Preventiva Identificada</div><div class="section-content">${item.acaoPrev}</div></div>`:''}
 `:`
 <div class="section"><div class="section-title">Serviço Planejado</div><div class="section-content">${item.desc||'—'}</div></div>
 ${item.desc2?`<div class="section"><div class="section-title">Serviço Executado</div><div class="section-content">${item.desc2}</div></div>`:''}
@@ -138,8 +129,8 @@ window.exportarParaSheets = async function() {
   const r = await apiPost({
     action: 'importarTodos',
     payload: {
-      salas: db.salas,
-      maquinas: db.maquinas,
+      lojas: db.lojas,
+      areas: db.areas,
       usuarios: db.usuarios
     }
   });

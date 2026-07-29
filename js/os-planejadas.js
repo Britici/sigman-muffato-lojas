@@ -16,7 +16,7 @@ function sortPlan(col) {
 }
 
 function renderPlan() {
-  populateSalaFilter('fp-sl');
+  populateLojaFilter('fp-sl');
   const t = today();
   let changed = false;
   db.planejadas.forEach(p => {
@@ -35,9 +35,9 @@ function renderPlan() {
   const dtF = v('fp-dt-fim');
 
   let data = [...db.planejadas];
-  if (tx)  data = data.filter(p => [p.numero, p.sala, p.maq, p.tipo].some(x => x && x.toLowerCase().includes(tx)));
+  if (tx)  data = data.filter(p => [p.numero, p.loja, p.maq, p.tipo].some(x => x && x.toLowerCase().includes(tx)));
   if (tp)  data = data.filter(p => p.tipo === tp);
-  if (sl)  data = data.filter(p => p.sala === sl);
+  if (sl)  data = data.filter(p => p.loja === sl);
   if (st)  data = data.filter(p => p.status === st);
   if (dtI) data = data.filter(p => p.prazo >= dtI);
   if (dtF) data = data.filter(p => p.prazo <= dtF);
@@ -53,7 +53,7 @@ function renderPlan() {
     return dir === 'asc' ? cmp : -cmp;
   });
 
-  ['numero','sala','maq','tipo','prioridade','prazo','status'].forEach(c => {
+  ['numero','loja','maq','tipo','prioridade','prazo','status'].forEach(c => {
     const el = document.getElementById('ph-' + c);
     if (!el) return;
     el.classList.remove('asc','desc');
@@ -68,7 +68,7 @@ function renderPlan() {
       : null;
     return `<tr>
     <td><span class="osn">${p.numero}</span>${osGerada?`<div style="text-align:left;font-size:11px;color:var(--txt2);margin-top:1px">(${osGerada})</div>`:''}</td>
-    <td>${p.sala}</td><td>${p.maq}</td>
+    <td>${p.loja}</td><td>${p.maq}</td>
     <td>${tipoBadge(p.tipo)}</td><td>${prio(p.prioridade)}</td>
     <td style="font-family:var(--fm);font-size:13px;color:${p.prazo<t&&p.status!=='Concluída'?'var(--red)':'var(--txt)'}">${fd(p.prazo)}</td>
     <td>${stBadge(p.status)}</td>
@@ -107,17 +107,17 @@ function exportPlanCSV() {
   const dtI = v('fp-dt-ini');
   const dtF = v('fp-dt-fim');
   let data = [...db.planejadas];
-  if (tx)  data = data.filter(p => [p.numero, p.sala, p.maq, p.tipo].some(x => x && x.toLowerCase().includes(tx)));
+  if (tx)  data = data.filter(p => [p.numero, p.loja, p.maq, p.tipo].some(x => x && x.toLowerCase().includes(tx)));
   if (tp)  data = data.filter(p => p.tipo === tp);
-  if (sl)  data = data.filter(p => p.sala === sl);
+  if (sl)  data = data.filter(p => p.loja === sl);
   if (st)  data = data.filter(p => p.status === st);
   if (dtI) data = data.filter(p => p.prazo >= dtI);
   if (dtF) data = data.filter(p => p.prazo <= dtF);
   if (!data.length) { showToast('Sem dados para exportar com os filtros selecionados.', 'war'); return; }
-  const h = ['PL_Numero','Sala','Maquina','Tipo','Prioridade','Prazo','Horas_Turno','Status','Descricao'];
+  const h = ['PL_Numero','Loja','Area','Tipo','Prioridade','Prazo','Status','Descricao'];
   const rows = data.map(p => [
-    p.numero, p.sala, p.maq, p.tipo, p.prioridade||'',
-    p.prazo||'', p.horasTurno||'', p.status||'',
+    p.numero, p.loja, p.maq, p.tipo, p.prioridade||'',
+    p.prazo||'', p.status||'',
     (p.desc||'').replace(/,/g,'|')
   ]);
   const csv = [h, ...rows].map(r => r.join(',')).join('\n');
@@ -132,24 +132,24 @@ function editarPlan(id) {
   if (!p) return;
   document.getElementById('me-t').textContent = 'Editar O.S. Planejada — ' + p.numero;
 
-  const salasOpts = db.salas.sort().map(s =>
-    `<option value="${s}"${s===p.sala?' selected':''}>${s}</option>`
+  const lojasOpts = db.lojas.sort().map(s =>
+    `<option value="${s}"${s===p.loja?' selected':''}>${s}</option>`
   ).join('');
 
-  const maqsFiltradas = db.maquinas.filter(m => m.sala === p.sala);
+  const maqsFiltradas = db.areas.filter(m => m.loja === p.loja);
   const maqsOpts = maqsFiltradas.sort((a,b)=>a.nome.localeCompare(b.nome)).map(m =>
     `<option value="${m.nome}"${m.nome===p.maq?' selected':''}>${m.nome}${m.tag?' ('+m.tag+')':''}</option>`
   ).join('');
 
   document.getElementById('me-b').innerHTML = `
-    <div class="fg"><label>Sala / Local</label>
-      <select id="ep-sala" onchange="epFiltrarMaq()">
+    <div class="fg"><label>Loja / Local</label>
+      <select id="ep-loja" onchange="epFiltrarMaq()">
         <option value="">Selecione...</option>
-        ${salasOpts}
-        <option value="__outros__"${p.sala==='__outros__'?' selected':''}>Outros</option>
+        ${lojasOpts}
+        <option value="__outros__"${p.loja==='__outros__'?' selected':''}>Outros</option>
       </select>
     </div>
-    <div class="fg"><label>Máquina / Ativo</label>
+    <div class="fg"><label>Área / Ativo</label>
       <select id="ep-maq">
         <option value="">Selecione...</option>
         ${maqsOpts}
@@ -166,7 +166,7 @@ function editarPlan(id) {
     </div>
     <div class="fg"><label>Prioridade</label>
       <select id="ep-prio">
-        <option value="1"${p.prioridade==='1'?' selected':''}>🔴 Crítico (Parada de Máquina)</option>
+        <option value="1"${p.prioridade==='1'?' selected':''}>🔴 Crítico (Parada de Área)</option>
         <option value="2"${(p.prioridade==='2'||p.prioridade==='Alta')?' selected':''}>🟠 Alta (Risco de Parada)</option>
         <option value="3"${(p.prioridade==='3'||p.prioridade==='Média')?' selected':''}>🟡 Média (Importante - Planejamento)</option>
         <option value="4"${(p.prioridade==='4'||p.prioridade==='Baixa')?' selected':''}>🟢 Baixo (Melhoria - Planejamento)</option>
@@ -175,9 +175,6 @@ function editarPlan(id) {
     <div class="fg"><label>Prazo Limite</label>
       <input type="hidden" id="ep-prazo" value="${p.prazo||''}">
       <input type="text" id="ep-prazo_disp" class="date-mask" placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" oninput="dateMaskInput(this)" value="${p.prazo?fd(p.prazo):''}">
-    </div>
-    <div class="fg" style="display:none"><label>Horas por Turno</label>
-      <input type="number" id="ep-horas" value="${p.horasTurno||10}" min="1" max="24">
     </div>
     <div class="fg"><label>Status</label>
       <select id="ep-status">
@@ -196,11 +193,11 @@ function editarPlan(id) {
 }
 
 function epFiltrarMaq() {
-  const sala = document.getElementById('ep-sala')?.value;
+  const loja = document.getElementById('ep-loja')?.value;
   const sel  = document.getElementById('ep-maq');
   if (!sel) return;
-  const maqsFiltradas = db.maquinas
-    .filter(m => !sala || m.sala === sala)
+  const maqsFiltradas = db.areas
+    .filter(m => !loja || m.loja === loja)
     .sort((a,b) => a.nome.localeCompare(b.nome));
   sel.innerHTML = '<option value="">Selecione...</option>' +
     maqsFiltradas.map(m =>
@@ -212,32 +209,8 @@ function epFiltrarMaq() {
 function delPlan(id) {
   if (!confirm('Excluir esta O.S. planejada?')) return;
   const pl = db.planejadas.find(p => p.numero === id);
-  if (pl) logEdit('Excluiu Planejada', pl.numero, pl.sala + ' · ' + pl.maq);
+  if (pl) logEdit('Excluiu Planejada', pl.numero, pl.loja + ' · ' + pl.maq);
   db.planejadas = db.planejadas.filter(p => p.numero !== id);
   saveDB(); renderPlan();
   if (pl) apiDelete('planejadas', pl.numero, 'PL_Numero');
 }
-
-// ── RAC — helpers ────────────────────────────────────────────────────
-function getCriticidadeMaq(maqNome) {
-  const m = db.maquinas.find(x => normStr(x.nome) === normStr(maqNome));
-  return parseInt(m?.criticidade) || 3;
-}
-function getCriticidadeBadge(maqNome) {
-  const crit = getCriticidadeMaq(maqNome);
-  const critMap = {'1':'Criticidade 1','2':'Criticidade 2','3':'Criticidade 3','4':'Criticidade 4'};
-  const critColor = {'1':'#ff2244','2':'var(--red)','3':'var(--org)','4':'var(--grn)'}[String(crit)] || 'var(--txt3)';
-  return `<span style="font-size:11px;color:${critColor};font-weight:600">${critMap[String(crit)] || '—'}</span>`;
-}
-function limiteRAC(crit) {
-  return {1:60, 2:120, 3:10080, 4:20160}[crit] ?? 120;
-}
-function precisaRAC(o) {
-  if (o.tipo !== 'Corretiva') return false;
-  const parada = o.paradaMin || o.durMin || 0;
-  if (parada <= 0) return false;
-  const crit  = getCriticidadeMaq(o.maq);
-  if (parada <= limiteRAC(crit)) return false;
-  const rac = (db.racs||[]).find(r => r.osNumero === o.numero);
-  return !rac || rac.status !== 'Concluído';
-} 

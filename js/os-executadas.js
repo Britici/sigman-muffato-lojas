@@ -15,7 +15,7 @@ function sortExec(col) {
 }
 
 function renderExec() {
-  populateSalaFilter('fe-sl');
+  populateLojaFilter('fe-sl');
   const mnSel = document.getElementById('fe-mn');
   if (mnSel) {
     const cur = mnSel.value;
@@ -32,9 +32,9 @@ function renderExec() {
   const dtF = v('fe-dt-fim');
 
   let data = [...db.ordens];
-  if (tx) data = data.filter(o => [o.numero,o.sala,o.maq,o.manut,o.tipo].some(x=>x&&x.toLowerCase().includes(tx)));
+  if (tx) data = data.filter(o => [o.numero,o.loja,o.maq,o.manut,o.tipo].some(x=>x&&x.toLowerCase().includes(tx)));
   if (tp) data = data.filter(o => o.tipo === tp);
-  if (sl) data = data.filter(o => o.sala === sl);
+  if (sl) data = data.filter(o => o.loja === sl);
   if (mn) data = data.filter(o => o.manut === mn);
   if (dtI) data = data.filter(o => o.data >= dtI);
   if (dtF) data = data.filter(o => o.data <= dtF);
@@ -50,7 +50,7 @@ function renderExec() {
   });
 
   // Atualiza ícones dos cabeçalhos
-  ['numero','data','sala','maq','tipo','prioridade','manut'].forEach(c => {
+  ['numero','data','loja','maq','tipo','prioridade','manut'].forEach(c => {
     const el = document.getElementById('sh-' + c);
     if (!el) return;
     el.classList.remove('asc','desc');
@@ -63,14 +63,13 @@ function renderExec() {
   tb.innerHTML = data.map(o => `<tr>
     <td style="white-space:nowrap;width:110px">
       <span style="display:flex;align-items:center;gap:4px;justify-content:flex-start">
-        ${precisaRAC(o)?`<span class="rac-dot" title="RAC obrigatório" style="cursor:default;flex-shrink:0"></span>`:''}
         <span class="osn">${o.numero}</span>
       </span>
       ${(o.origem==='plan'||o.origem==='sol')&&o.origemNum?`<div style="text-align:left;font-size:11px;color:var(--txt2);margin-top:1px">(${o.origemNum})</div>`:''}
     </td>
     <td style="font-size:14px">${fd(o.data)}</td>
-    <td>${o.sala}</td>
-    <td><div>${o.maq}</div><div style="font-size:11px;color:var(--txt3)">${getCriticidadeBadge(o.maq)}</div></td>
+    <td>${o.loja}</td>
+    <td>${o.maq}</td>
     <td>${tipoBadge(o.tipo)}</td>
     <td>${prio(o.prioridade)}</td>
     <td style="font-size:14px">${o.manut}</td>
@@ -92,64 +91,12 @@ function renderExec() {
   </tr>`).join('');
 }
 
-function abrirRAC(osNumero) {
-  if (!osNumero && _curDet && _curDet.tipo === 'os') {
-    osNumero = _curDet.item.numero;
-  }
-  const o = db.ordens.find(x => x.numero === osNumero);
-  if (!o) { showToast('OS não encontrada.', 'er'); return; }
-  _racrOsRef = osNumero;
 
-  // Popula sala com option única (readonly via disabled)
-  const salaSel = document.getElementById('racr-sala');
-  if (salaSel) {
-    salaSel.innerHTML = `<option value="${o.sala}">${o.sala}</option>`;
-    salaSel.setAttribute('disabled', '');
-  }
-  // Popula equip com option única (readonly via disabled)
-  const equipSel = document.getElementById('racr-equip');
-  if (equipSel) {
-    equipSel.innerHTML = `<option value="${o.maq}">${o.maq}</option>`;
-    equipSel.setAttribute('disabled', '');
-  }
-  // Data e hora
-  const dtEl = document.getElementById('racr-data');
-  const dtDispEl = document.getElementById('racr-data_disp');
-  const hrEl = document.getElementById('racr-hora');
-  if (dtEl) { dtEl.value = o.data || today(); dtEl.setAttribute('readonly', ''); }
-  if (dtDispEl) { dtDispEl.value = fd(o.data || today()); dtDispEl.setAttribute('readonly', ''); }
-  if (hrEl) { hrEl.value = o.ini || new Date().toTimeString().slice(0,5); hrEl.setAttribute('readonly', ''); }
-  // Falha e ação imediata da OS
-  const falhaEl = document.getElementById('racr-falha');
-  const imediataEl = document.getElementById('racr-imediata');
-  const respManuEl = document.getElementById('racr-resp-manu');
-  if (falhaEl) falhaEl.value = o.prob || '';
-  if (imediataEl) imediataEl.value = o.acao || '';
-  if (respManuEl) respManuEl.value = o.manut || '';
-  // Limpa campos de análise
-  ['racr-causa','racr-p1','racr-p2','racr-p3','racr-p4','racr-p5',
-   'racr-preventiva','racr-resp-prod','racr-exec'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  closeM('m-det');
-  openM('mb-racr');
-}
-
-
-function racrFiltrarMaq() {
-  const sala = document.getElementById('racr-sala')?.value;
-  const maqSel = document.getElementById('racr-equip');
-  if (!maqSel) return;
-  const maquinas = db.maquinas.filter(m => !sala || m.sala === sala);
-  maqSel.innerHTML = '<option value="">Selecione...</option>' +
-    maquinas.map(m => `<option value="${m.nome}">${m.nome}</option>`).join('');
-}
 
 function delOS(id) {
   if (!confirm('Excluir esta O.S.?')) return;
   const os = db.ordens.find(o => o.numero === id);
-  if (os) logEdit('Excluiu OS', os.numero, os.sala + ' · ' + os.maq);
+  if (os) logEdit('Excluiu OS', os.numero, os.loja + ' · ' + os.maq);
   db.ordens = db.ordens.filter(o => o.numero !== id);
   saveDB(); renderExec(); updStats();
   if (os) apiDelete('ordens', os.numero, 'OS_Numero');
@@ -164,18 +111,18 @@ function exportCSV() {
   const dtF = v('fe-dt-fim');
 
   let data = [...db.ordens];
-  if (tx) data = data.filter(o => [o.numero,o.sala,o.maq,o.manut,o.tipo].some(x=>x&&x.toLowerCase().includes(tx)));
+  if (tx) data = data.filter(o => [o.numero,o.loja,o.maq,o.manut,o.tipo].some(x=>x&&x.toLowerCase().includes(tx)));
   if (tp) data = data.filter(o => o.tipo === tp);
-  if (sl) data = data.filter(o => o.sala === sl);
+  if (sl) data = data.filter(o => o.loja === sl);
   if (mn) data = data.filter(o => o.manut === mn);
   if (dtI) data = data.filter(o => o.data >= dtI);
   if (dtF) data = data.filter(o => o.data <= dtF);
 
   if (!data.length) { showToast('Sem dados para exportar com os filtros selecionados.'); return; }
 
-  const h = ['OS_Numero','Data','Sala','Maquina','Tipo','Prioridade','Manutentor','Hora_Inicio','Hora_Fim','Duracao_Min','Tempo_Parada_Min','Problema','Acao_Executada','Origem'];
+  const h = ['OS_Numero','Data','Loja','Area','Tipo','Prioridade','Manutentor','Hora_Inicio','Hora_Fim','Duracao_Min','Tempo_Parada_Min','Problema','Acao_Executada','Origem'];
   const rows = data.map(o => [
-    o.numero, o.data, o.sala, o.maq, o.tipo, o.prioridade||'', o.manut,
+    o.numero, o.data, o.loja, o.maq, o.tipo, o.prioridade||'', o.manut,
     o.ini||'', o.fim||'', o.durMin||'', o.paradaMin||'',
     (o.prob||'').replace(/,/g,'|'), (o.acao||'').replace(/,/g,'|'), o.origem
   ]);
