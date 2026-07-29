@@ -118,30 +118,25 @@
     <div id="offline-banner">⚠️ <strong>Modo offline</strong> — dados do Google Sheets indisponíveis. Exibindo cache local.</div>
     <div class="stats" id="d-stats"></div>
 
-  <!-- Disponibilidade + Meta PCM + Tendência na mesma linha -->
+  <div class="card">
+    <div class="card-t">Chamados por Tipo de Serviço</div>
+    <div class="stats" id="d-tipos"></div>
+  </div>
   <div class="tri-col">
-    <div class="card"><div class="card-t">Disponibilidade do Período</div><div id="d-gauge"></div></div>
-    <div class="card"><div class="card-t">Meta PCM — % Preventiva</div><div id="d-pcm-ring"></div></div>
+    <div class="card"><div class="card-t">Distribuição por Tipo de Serviço</div><div id="d-dist-tipo"></div></div>
     <div class="card"><div class="card-t">Tendência — OS por Mês (últimos 6 meses)</div><div id="d-trend"></div></div>
   </div>
   <div class="two-col">
     <div class="card"><div class="card-t">O.S. Planejadas em Aberto</div><div id="d-plan"></div></div>
-    <div class="card"><div class="card-t">Solicitações da Produção — Pendentes</div><div id="d-sol"></div></div>
-  </div>
-  <div class="card">
-    <div class="card-t" style="justify-content:space-between">
-      <span style="flex:1">Inspeção Diária — Último Relatório</span>
-      <button class="btn btn-sm btn-gh" onclick="verRelatorio()">Ver Completo</button>
-    </div>
-    <div id="d-insp"></div>
+    <div class="card"><div class="card-t">Solicitações de Gerentes — Pendentes</div><div id="d-sol"></div></div>
   </div>
   <div class="two-col">
     <div class="card"><div class="card-t">🔔 Próximas Manutenções Planejadas</div><div id="d-proximas"></div></div>
     <div class="card"><div class="card-t">Últimas O.S. Executadas</div><div id="d-rec"></div></div>
   </div>
       <div class="two-col">
-        <div class="card"><div class="card-t">🏭 Ranking Salas — Corretivas</div><div id="d-top-salas"></div></div>
-        <div class="card"><div class="card-t">🔧 Ranking Máquinas — Corretivas</div><div id="d-top-maq"></div></div>
+        <div class="card"><div class="card-t">🏭 Ranking Lojas — Mais Chamados</div><div id="d-top-lojas"></div></div>
+        <div class="card"><div class="card-t">🔧 Ranking Áreas — Mais Chamados</div><div id="d-top-maq"></div></div>
       </div>
   </div>
     
@@ -155,9 +150,9 @@
      <input type="text" id="fp-tx" placeholder="🔍 Buscar..." oninput="renderPlanDebounced()">
      <select id="fp-tp" onchange="renderPlan()">
       <option value="">Todos os Tipos</option>
-      <option>Corretiva</option><option>Inspeção</option><option>Melhoria</option><option>Preditiva</option><option>Preventiva</option>
+      <option>Predial</option><option>Refrigeração</option><option>Elétrico</option><option>Equipamento</option><option>Outros</option>
      </select>
-     <select id="fp-sl" onchange="renderPlan()"><option value="">Todas as Salas</option></select>
+     <select id="fp-sl" onchange="renderPlan()"><option value="">Todas as Lojas</option></select>
      <select id="fp-st" onchange="renderPlan()">
       <option value="">Todos os Status</option>
       <option>Pendente</option><option>Concluída</option><option>Atrasada</option>
@@ -169,8 +164,8 @@
      <div class="card-t">Não Concluídas</div>
      <div class="tw"><table><thead><tr>
       <th class="sortable" id="ph-numero"     onclick="sortPlan('numero')" style="width:100px;min-width:100px">OS #</th>
-      <th class="sortable" id="ph-sala"       onclick="sortPlan('sala')">Sala</th>
-      <th class="sortable" id="ph-maq"        onclick="sortPlan('maq')">Máquina</th>
+      <th class="sortable" id="ph-loja"       onclick="sortPlan('loja')">Loja</th>
+      <th class="sortable" id="ph-maq"        onclick="sortPlan('maq')">Área</th>
       <th class="sortable" id="ph-tipo"       onclick="sortPlan('tipo')">Tipo</th>
       <th class="sortable" id="ph-prioridade" onclick="sortPlan('prioridade')">Prioridade</th>
       <th class="sortable" id="ph-prazo"      onclick="sortPlan('prazo')">Prazo</th>
@@ -182,7 +177,7 @@
      <div class="card-t">Concluídas</div>
      <div class="tw"><table><thead><tr>
       <th style="width:100px;min-width:100px">OS #</th>
-      <th>Sala</th><th>Máquina</th><th>Tipo</th><th>Prioridade</th>
+      <th>Loja</th><th>Área</th><th>Tipo</th><th>Prioridade</th>
       <th>Prazo</th><th>Status</th><th>Ações</th>
      </tr></thead><tbody id="tb-plan-concluidas"></tbody></table></div>
     </div>
@@ -198,10 +193,9 @@
      <input type="text" id="fe-tx" placeholder="🔍 Buscar..." oninput="renderExecDebounced()">
      <select id="fe-tp" onchange="renderExec()">
       <option value="">Todos os Tipos</option>
-      <option>Corretiva</option><option>Inspeção</option><option>Melhoria</option>
-      <option>Preditiva</option><option>Preventiva</option>
+      <option>Predial</option><option>Refrigeração</option><option>Elétrico</option><option>Equipamento</option><option>Outros</option>
      </select>
-     <select id="fe-sl" onchange="renderExec()"><option value="">Todas as Salas</option></select>
+     <select id="fe-sl" onchange="renderExec()"><option value="">Todas as Lojas</option></select>
      <select id="fe-mn" onchange="renderExec()"><option value="">Todos os Manut.</option></select>
      <input type="hidden" id="fe-dt-ini"><input type="text" id="fe-dt-ini_disp" class="date-mask" title="Data inicial" placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" oninput="dateMaskInput(this)" onchange="renderExec()">
      <input type="hidden" id="fe-dt-fim"><input type="text" id="fe-dt-fim_disp" class="date-mask" title="Data final" placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" oninput="dateMaskInput(this)" onchange="renderExec()">
@@ -209,8 +203,8 @@
     <div class="tw"><table><thead><tr>
     <th class="sortable" id="sh-numero" onclick="sortExec('numero')" style="width:100px;min-width:100px">OS #</th>
     <th class="sortable" id="sh-data"   onclick="sortExec('data')">Data</th>
-    <th class="sortable" id="sh-sala"   onclick="sortExec('sala')">Sala</th>
-    <th class="sortable" id="sh-maq"    onclick="sortExec('maq')">Máquina</th>
+    <th class="sortable" id="sh-loja"   onclick="sortExec('loja')">Loja</th>
+    <th class="sortable" id="sh-maq"    onclick="sortExec('maq')">Área</th>
     <th class="sortable" id="sh-tipo"   onclick="sortExec('tipo')">Tipo</th>
     <th class="sortable" id="sh-prioridade" onclick="sortExec('prioridade')">Prioridade</th>
     <th class="sortable" id="sh-manut"  onclick="sortExec('manut')">Manutentor</th>  
@@ -227,10 +221,10 @@
     <div class="card">
      <div class="card-t">Identificação</div>
      <div class="fg-row">
-      <div class="fg"><label>Sala / Local</label><select id="ab-sl" onchange="fMaq('ab')"><option value="">Selecione...</option></select></div>
-      <div class="fg"><label>Máquina / Ativo</label><select id="ab-mq"><option value="">Selecione a sala</option></select></div>
-      <div class="fg"><label>Tipo de Ação</label><select id="ab-tp"><option value="">Selecione...</option><option>Corretiva</option><option>Inspeção</option><option>Melhoria</option><option>Preditiva</option><option>Preventiva</option></select></div>
-      <div class="fg"><label>Prioridade</label><select id="ab-pr"><option value="">Selecione...</option><option value="1">🔴 1 – Crítico (Parada de Máquina)</option><option value="2">🟡 2 – Alta (Risco de Parada)</option><option value="3">🔵 3 – Média (Preventiva)</option><option value="4">🟢 4 – Baixa (Melhoria)</option></select></div>
+      <div class="fg"><label>Loja / Local</label><select id="ab-sl" onchange="fMaq('ab')"><option value="">Selecione...</option></select></div>
+      <div class="fg"><label>Área / Ativo</label><select id="ab-mq"><option value="">Selecione a loja</option></select></div>
+      <div class="fg"><label>Tipo de Ação</label><select id="ab-tp"><option value="">Selecione...</option><option>Predial</option><option>Refrigeração</option><option>Elétrico</option><option>Equipamento</option><option>Outros</option></select></div>
+      <div class="fg"><label>Prioridade</label><select id="ab-pr"><option value="">Selecione...</option><option value="1">🔴 1 – Crítico (Parada de Área)</option><option value="2">🟡 2 – Alta (Risco de Parada)</option><option value="3">🔵 3 – Média (Preventiva)</option><option value="4">🟢 4 – Baixa (Melhoria)</option></select></div>
       <div class="fg"><label>Manutentor Responsável</label><input type="text" id="ab-mn" placeholder="Nome"></div>
      </div>
     </div>
@@ -273,12 +267,11 @@
     <div class="card">
      <div class="card-t">Nova O.S. Planejada</div>
      <div class="fg-row">
-      <div class="fg"><label>Sala / Local</label><select id="pl-sl" onchange="fMaq('pl')"><option value="">Selecione...</option></select></div>
-      <div class="fg"><label>Máquina / Ativo</label><select id="pl-mq"><option value="">Selecione a sala</option></select></div>
-      <div class="fg"><label>Tipo de Serviço</label><select id="pl-tp"><option value="">Selecione...</option><option>Corretiva</option><option>Inspeção</option><option>Melhoria</option><option>Preditiva</option><option>Preventiva</option></select></div>
+      <div class="fg"><label>Loja / Local</label><select id="pl-sl" onchange="fMaq('pl')"><option value="">Selecione...</option></select></div>
+      <div class="fg"><label>Área / Ativo</label><select id="pl-mq"><option value="">Selecione a loja</option></select></div>
+      <div class="fg"><label>Tipo de Serviço</label><select id="pl-tp"><option value="">Selecione...</option><option>Predial</option><option>Refrigeração</option><option>Elétrico</option><option>Equipamento</option><option>Outros</option></select></div>
       <div class="fg"><label>Prioridade</label><select id="pl-pr"><option value="">Selecione...</option><option value="1">🔴 1 – Emergencial (Parada)</option><option value="2">🟡 2 – Urgente (Corretiva Programada)</option><option value="3">🔵 3 – Média (Preventiva)</option><option value="4">🟢 4 – Baixa (Melhoria)</option></select></div>
       <div class="fg"><label>Prazo Limite</label><input type="hidden" id="pl-pz"><input type="text" id="pl-pz_disp" class="date-mask" placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" oninput="dateMaskInput(this)"></div>
-      <div class="fg" style="display:none"><label>Horas por Turno</label><input type="number" id="pl-horas" value="10" min="1" max="24"></div>
       <div class="fg fg-full"><label>Descrição do Serviço Planejado</label><textarea id="pl-ds" placeholder="Descreva o serviço..."></textarea></div>
      </div>
      <div class="fa">
@@ -290,15 +283,15 @@
 
    <!-- SOLICITAÇÃO OS -->
    <div class="pg" id="pg-solicitacao">
-    <div class="ph"><div class="pt"><small>Produção</small>Solicitação de O.S.</div></div>
+    <div class="ph"><div class="pt"><small>Gerente</small>Solicitação de O.S.</div></div>
     <div class="alert" id="al-sol"></div>
     <div class="card">
      <div class="card-t">Nova Solicitação</div>
      <div class="fg-row">
-      <div class="fg"><label>Sala / Local</label><select id="sol-sl" onchange="fMaq('sol')"><option value="">Selecione...</option></select></div>
-      <div class="fg"><label>Máquina / Ativo</label><select id="sol-mq"><option value="">Selecione a sala</option></select></div>
-      <div class="fg"><label>Tipo</label><select id="sol-tp"><option value="">Selecione...</option><option>Corretiva</option><option>Melhoria</option></select></div>
-      <div class="fg"><label>Prioridade</label><select id="sol-pr"><option value="">Selecione...</option><option value="1">🔴 1 – Crítico (Parada de Máquina)</option><option value="2">🟡 2 – Alta (Risco de Parada)</option><option value="3">🔵 3 – Média (Preventiva)</option><option value="4">🟢 4 – Baixa (Melhoria)</option></select></div>
+      <div class="fg"><label>Loja / Local</label><select id="sol-sl" onchange="fMaq('sol')"><option value="">Selecione...</option></select></div>
+      <div class="fg"><label>Área / Ativo</label><select id="sol-mq"><option value="">Selecione a loja</option></select></div>
+      <div class="fg"><label>Tipo</label><select id="sol-tp"><option value="">Selecione...</option><option>Predial</option><option>Refrigeração</option><option>Elétrico</option><option>Equipamento</option><option>Outros</option></select></div>
+      <div class="fg"><label>Prioridade</label><select id="sol-pr"><option value="">Selecione...</option><option value="1">🔴 1 – Crítico (Parada de Área)</option><option value="2">🟡 2 – Alta (Risco de Parada)</option><option value="3">🔵 3 – Média (Preventiva)</option><option value="4">🟢 4 – Baixa (Melhoria)</option></select></div>
       <div class="fg fg-full"><label>Descrição do Problema</label><textarea id="sol-ds" placeholder="Descreva o problema..."></textarea></div>
       <div class="fg fg-full"><label>Foto do Problema (opcional)</label>
         <div id="sol-photo-area" onclick="document.getElementById('sol-photo-input').click()" style="border:2px dashed var(--bord);border-radius:var(--rs);padding:14px;text-align:center;cursor:pointer;background:var(--surf2);display:flex;align-items:center;gap:14px;justify-content:center" onmouseover="this.style.borderColor='var(--red)'" onmouseout="this.style.borderColor='var(--bord)'">
@@ -320,7 +313,7 @@
           <option value="numero-asc">OS # ↑ (mais antiga)</option>
           <option value="prioridade-asc">Prioridade (crítica primeiro)</option>
           <option value="status-asc">Status</option>
-          <option value="sala-asc">Sala A→Z</option>
+          <option value="loja-asc">Loja A→Z</option>
         </select>
       </div>
       <div id="sol-lista"></div>
@@ -331,85 +324,39 @@
     </div>
     </div>
 
-   <!-- INSPEÇÃO DIÁRIA -->
-   <div class="pg" id="pg-inspecao">
-    <div class="ph">
-     <div class="pt"><small>Operação</small>Inspeção Diária</div>
-     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-sm btn-gh" onclick="gerarRel()">📋 Relatório WhatsApp</button>
-      <button class="btn btn-sm btn-gh" onclick="imprimirInspDiaria()">🖨️ Imprimir Ordem</button>
-      <button class="btn btn-sm btn-p" onclick="salvarInsp()">💾 Salvar Inspeção</button>
-     </div>
-    </div>
-    <div class="alert" id="al-insp"></div>
-    <div class="card" style="margin-bottom:14px">
-     <div class="card-t">Dados da Inspeção</div>
-     <div class="fg-row">
-      <div class="fg"><label>Data</label><input type="hidden" id="insp-dt"><input type="text" id="insp-dt_disp" class="date-mask" placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" oninput="dateMaskInput(this)"></div>
-      <div class="fg"><label>Turno</label><select id="insp-tn"><option>1º Turno</option><option>2º Turno</option><option>3º Turno</option></select></div>
-      <div class="fg" style="display:none"><label>Horas do Turno</label><input type="number" id="insp-horas" value="10" min="1" max="24"></div>
-      <div class="fg"><label>Manutentor</label><input type="text" id="insp-mn" placeholder="Nome"></div>
-     </div>
-    </div>
-    <div id="insp-secs"></div>
-    <div class="fa">
-     <button class="btn btn-gh btn-sm" onclick="gerarRel()">📋 Gerar Relatório WhatsApp</button>
-     <button class="btn btn-p" onclick="salvarInsp()">💾 Salvar Inspeção</button>
-    </div>
-   </div>
-
    <!-- ATIVOS -->
    <div class="pg" id="pg-ativos">
   <div class="ph">
     <div class="pt"><small>Cadastro</small>Ativos</div>
   </div>
-    <div class="card"><div class="card-t">Criticidade das Máquinas</div><div id="at-crit-chart"></div></div>
     <div class="two-col">
     <div>
-      <div class="card card-fold" id="at-card-sala">
-       <div class="card-t" onclick="toggleAtFold('at-card-sala')"><span>+ Nova Sala / Local</span><span class="card-t-chev">▾</span></div>
+      <div class="card card-fold" id="at-card-loja">
+       <div class="card-t" onclick="toggleAtFold('at-card-loja')"><span>+ Nova Loja / Local</span><span class="card-t-chev">▾</span></div>
        <div class="card-fold-body">
-        <div class="fg"><label>Nome da Sala</label><input type="text" id="at-sn" placeholder="Ex: Carne Moída"></div>
-        <button class="btn btn-p btn-sm" onclick="addSala()">+ Adicionar</button>
+        <div class="fg"><label>Nome da Loja</label><input type="text" id="at-sn" placeholder="Ex: Carne Moída"></div>
+        <button class="btn btn-p btn-sm" onclick="addLoja()">+ Adicionar</button>
        </div>
       </div>
-      <div class="card"><div class="card-t">Salas Cadastradas</div><div id="at-sl"></div></div>
+      <div class="card"><div class="card-t">Lojas Cadastradas</div><div id="at-sl"></div></div>
         </div>
      <div>
       <div class="card card-fold" id="at-card-maq">
-       <div class="card-t" onclick="toggleAtFold('at-card-maq')"><span>+ Nova Máquina / Ativo</span><span class="card-t-chev">▾</span></div>
+       <div class="card-t" onclick="toggleAtFold('at-card-maq')"><span>+ Nova Área / Ativo</span><span class="card-t-chev">▾</span></div>
        <div class="card-fold-body">
-        <div class="fg"><label>Sala</label><select id="at-ms"><option value="">Selecione...</option></select></div>
-        <div class="fg"><label>Nome da Máquina</label><input type="text" id="at-mn" placeholder="Ex: Cubadora"></div>
-        <div class="fg"><label>Tag / Código</label><input type="text" id="at-mt" placeholder="Ex: CUB-001"></div>
-        <div class="fg"><label>Criticidade</label>
-         <select id="at-mc">
-          <option value="1">1 – Crítico</option>
-          <option value="2">2 – Alta</option>
-          <option value="3" selected>3 – Média</option>
-          <option value="4">4 – Baixa</option>
-         </select>
-        </div>
-        <div class="fg"><label>Periodicidade Preventiva</label>
-         <select id="at-mp">
-          <option>Diária</option><option>Semanal</option>
-          <option selected>Mensal</option><option>Trimestral</option>
-          <option>Semestral</option><option>Anual</option>
-         </select>
-        </div>
-        <div class="fg"><label>Modelo de Manutenção Padrão</label>
-         <select id="at-mmp"><option value="">Nenhum (seleciona manual na OS)</option></select>
-        </div>
+        <div class="fg"><label>Loja</label><select id="at-ms"><option value="">Selecione...</option></select></div>
+        <div class="fg"><label>Nome da Área</label><input type="text" id="at-mn" placeholder="Ex: Câmara Fria"></div>
+        <div class="fg"><label>Tag / Código</label><input type="text" id="at-mt" placeholder="Ex: CF-001"></div>
         <button class="btn btn-p btn-sm" onclick="addMaq()">+ Adicionar</button>
        </div>
       </div>
       <div class="card">
         <div class="card-t" style="flex-wrap:wrap;gap:8px">
-          <span>Máquinas Cadastradas</span>
+          <span>Áreas Cadastradas</span>
           <div style="display:flex;gap:6px;margin-left:auto">
             <input type="text" id="at-ml-busca" oninput="renderAtivos()" placeholder="Buscar nome ou tag..." style="font-size:14px;background:var(--inp);border:1px solid var(--bord);border-radius:var(--rs);color:var(--txt);padding:4px 8px;outline:none;width:140px">
             <select id="at-ml-fil" onchange="renderAtivos()" style="font-size:14px;background:var(--inp);border:1px solid var(--bord);border-radius:var(--rs);color:var(--txt);padding:4px 8px;outline:none;max-width:140px">
-              <option value="">Todas as Salas</option>
+              <option value="">Todas as Lojas</option>
             </select>
           </div>
         </div>
@@ -420,56 +367,6 @@
    </div>
 
    <!-- PÁGINA: MANUAIS E SENHAS -->
-   <div class="pg" id="pg-manuais-senhas">
-    <div class="ph"><div class="pt"><small>Manutenção</small>Manuais e Senhas</div></div>
-    <div class="two-col">
-     <div id="ms-col-admin">
-      <div class="card">
-       <div class="card-t">Selecionar Máquina</div>
-       <div class="fg"><label>Sala / Local</label>
-        <select id="ms-sala" onchange="filtrarMSMaq()"><option value="">Selecione...</option></select>
-       </div>
-       <div class="fg"><label>Máquina / Ativo</label>
-        <select id="ms-maq" onchange="selecionarMSMaquina()"><option value="">Selecione a sala primeiro...</option></select>
-       </div>
-      </div>
-      <div class="card" id="ms-card-edicao" style="display:none">
-       <div class="card-t">Manual e Credenciais</div>
-       <div class="fg"><label>Link do Manual (Drive)</label>
-        <input type="text" id="ms-manual-url" placeholder="https://drive.google.com/...">
-       </div>
-       <div class="fg"><label>Credenciais de Acesso</label></div>
-       <div id="ms-cred-list"></div>
-       <button class="btn btn-sm btn-gh" onclick="addMSCredencial()">+ Adicionar Credencial</button>
-       <div class="fa">
-        <button class="btn btn-p btn-sm" onclick="salvarMS()">💾 Salvar</button>
-       </div>
-      </div>
-     </div>
-     <div>
-      <div class="card">
-       <div class="card-t" style="flex-wrap:wrap;gap:8px">
-        <span>Máquinas Cadastradas</span>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-left:auto">
-         <select id="ms-lista-sala" onchange="renderMSLista()" style="font-size:14px;background:var(--inp);border:1px solid var(--bord);border-radius:var(--rs);color:var(--txt);padding:4px 8px;outline:none">
-          <option value="">Todas as salas</option>
-         </select>
-         <input type="text" id="ms-busca" oninput="renderMSLista()" placeholder="Buscar máquina..." style="font-size:14px;background:var(--inp);border:1px solid var(--bord);border-radius:var(--rs);color:var(--txt);padding:4px 8px;outline:none;width:160px">
-        </div>
-       </div>
-       <div id="ms-lista"></div>
-      </div>
-     </div>
-    </div>
-   </div>
-
-   <!-- MODAL: CREDENCIAIS (Manuais e Senhas) -->
-   <div class="mb" id="m-ms-cred"><div class="modal" style="max-width:420px">
-    <div class="mhd"><div class="mtit">Usuário e Senha</div><button class="mcl" onclick="closeM('m-ms-cred')">×</button></div>
-    <div id="ms-cred-modal-body"></div>
-   </div></div>
-
-
    <!-- PÁGINA: USUÁRIOS (admin only) -->
    <div class="pg" id="pg-usuarios">
     <div class="ph">
@@ -512,85 +409,6 @@
     </div>
    </div></div>
 
-    <!-- PÁGINA: STATUS DE SALAS -->
-    <div class="pg" id="pg-salas-status">
-      <div class="ph"><div class="pt"><small>Operação</small>Status de Salas</div></div>
-      <div class="stats" id="salas-grid"></div>
-    </div>
-    
-   <!-- PÁGINA: PREVENTIVA (template - admin only) -->
-   <div class="pg" id="pg-preventiva">
-    <div class="ph">
-     <div class="pt"><small>PCM · Manutenção</small>Ordem de Manutenção Preventiva</div>
-     <button class="btn btn-sm btn-gh" onclick="imprimirPreventiva()">🖨️ Imprimir Ordem de Manutenção Preventiva</button>
-     <button class="btn btn-sm btn-gh" onclick="imprimirInspecaoEquipamento()">🖨️ Imprimir Ordem de Inspeção de Equipamento</button>
-    </div>
-    <div class="card">
-     <div class="card-t">Dados da Preventiva</div>
-     <div class="fg-row">
-      <div class="fg"><label>Sala / Local</label>
-       <select id="prev-sala" onchange="filtrarPrevMaq()"><option value="">Todas as Salas</option></select>
-      </div>
-      <div class="fg"><label>Máquina / Ativo</label>
-       <select id="prev-maq" onchange="selecionarPrevMaquina()"><option value="">Selecione...</option></select>
-      </div>
-      <div class="fg"><label>Modelo de Manutenção</label>
-       <select id="prev-modelo" onchange="carregarTarefasPreventiva()"><option value="">Selecione...</option></select>
-      </div>
-      <div class="fg"><label>Data Execução</label>
-        <input type="text" id="prev-dt_disp" class="date-mask" placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" oninput="dateMaskInput(this)">
-        <input type="date" id="prev-dt" onchange="sv('prev-dt',this.value)" style="display:none">
-      </div>
-      <div class="fg"><label>Manutentor</label><input type="text" id="prev-mn" placeholder="Nome"></div>
-     </div>
-     <div class="fg-row fg-3">
-      <div class="fg"><label>Hora Início</label><input type="time" id="prev-hi"></div>
-      <div class="fg"><label>Hora Fim</label><input type="time" id="prev-hf"></div>
-     </div>
-     <input type="hidden" id="prev-periodo" value="Mensal">
-    </div>
-    <div id="prev-body"></div>
-    <div class="fa">
-     <button class="btn btn-p" onclick="salvarPreventiva()" style="display:none">💾 Salvar Preventiva</button>
-    </div>
-   </div>
-
-<!-- PÁGINA: ANÁLISE DE CAUSA RAIZ (admin) -->
-<div class="pg" id="pg-analise-causa-raiz">
- <div class="ph">
-  <div class="pt"><small>PCM · Qualidade</small>Análise de Causa Raiz</div>
-  <button class="btn btn-sm btn-p" onclick="abrirNovoRACR()">+ Novo RAC</button>
- </div>
- <div class="alert" id="al-racr"></div>
- <div class="card">
-  <div class="card-t">RACRs Abertos</div>
-  <div class="tw"><table><thead><tr>
-   <th>ID</th><th>Data</th><th>Equipamento</th><th>Falha</th><th>Causa Raiz</th><th>Status</th><th>Ações</th>
-  </tr></thead><tbody id="tb-racr-abertos"></tbody></table></div>
- </div>
- <div class="card" style="margin-top:20px">
-  <div class="card-t">RACRs Fechados</div>
-  <div class="tw"><table><thead><tr>
-   <th>ID</th><th>Data</th><th>Equipamento</th><th>Data Fechamento</th><th>Ações</th>
-  </tr></thead><tbody id="tb-racr-fechados"></tbody></table></div>
- </div>
-</div>
-
-<!-- COMPRAS — SOLICITAÇÃO -->
-<div class="pg" id="pg-compras-solicitacao">
-  <div class="ph"><div class="pt"><small>PCM · Compras</small>Solicitação de Compras</div></div>
-  <div id="pg-compras-solicitacao-body"></div>
-</div>
-
-<!-- COMPRAS — ACOMPANHAMENTO -->
-<div class="pg" id="pg-compras-acompanhamento">
-  <div class="ph">
-    <div class="pt"><small>PCM · Compras</small>Acompanhamento de Compras</div>
-    <button class="btn btn-gh btn-sm" onclick="ComprasAcompanhamento.refresh()">⟳ Atualizar</button>
-  </div>
-  <div id="pg-compras-acompanhamento-body"></div>
-</div>
-
 <!-- MODAL DETALHE -->
 <div class="mb" id="m-det"><div class="modal">
  <div class="mhd">
@@ -601,9 +419,6 @@
  <div class="wa-prev" id="md-wa" style="display:none"></div>
  <button class="wa-cp" id="md-wa-btn" onclick="copyWA()" style="display:none">📋 Copiar para WhatsApp</button>
  <button class="wa-cp" id="md-print-btn" onclick="imprimirDetOS()" style="display:none;background:#444;margin-top:6px">🖨️ Imprimir O.S.</button>
- <button class="btn btn-p btn-sm" id="md-rac-btn" onclick="abrirRAC()" style="display:none;animation:pulse-color 1.1s ease-in-out infinite;">
-  🔴 GERAR RCA
- </button>
 </div></div>
 
 <!-- MODAL CONCLUIR -->
@@ -624,139 +439,6 @@
  </div>
 </div></div>
 
-<!-- MODAL RELATÓRIO -->
-<div class="mb" id="m-rel"><div class="modal" style="max-width:640px">
- <div class="mhd"><div class="mtit">Relatório de Inspeção</div><button class="mcl" onclick="closeM('m-rel')">×</button></div>
- <div class="insp-report" id="m-rel-b"></div>
-<button class="wa-cp" onclick="copyRel()">📋 Copiar para WhatsApp</button>
-<button class="wa-cp" onclick="imprimirInspDiaria()" style="background:#444;margin-top:6px">🖨️ Imprimir Inspeção</button>
-</div></div>
-  
-<!-- ══ MODAL RACR ══ -->
-<div class="mb" id="mb-racr">
-  <div class="modal" style="max-width:900px">
-    <div class="mhd">
-      <div class="mtit">🔴 RCA - Análise de Causa Raiz</div>
-      <div class="mcl" onclick="fecharRACR()">✕</div>
-    </div>
-    <!-- SEÇÃO 1: IDENTIFICAÇÃO -->
-    <div class="card">
-      <div class="card-t">1 - Identificação do Problema</div>
-      <div class="fg-row">
-        <div class="fg">
-          <label>SALA</label>
-          <select id="racr-sala" onchange="racrFiltrarMaq()">
-            <option value="">Selecione...</option>
-          </select>
-        </div>
-        <div class="fg">
-          <label>TAG/EQUIPAMENTO</label>
-          <select id="racr-equip">
-            <option value="">Selecione a sala</option>
-          </select>
-        </div>
-        <div class="fg">
-          <label>DATA</label>
-          <input type="hidden" id="racr-data">
-          <input type="text" id="racr-data_disp" class="date-mask" placeholder="dd/mm/aaaa" inputmode="numeric" maxlength="10" oninput="dateMaskInput(this)">
-        </div>
-        <div class="fg">
-          <label>HORA DA PARADA</label>
-          <input type="time" id="racr-hora">
-        </div>
-      </div>
-    </div>
-    <!-- SEÇÃO 2: FALHA/DEFEITO -->
-    <div class="card">
-      <div class="card-t">2 - Falha / Defeito Identificado</div>
-      <div class="fg">
-        <label>Descrição da Falha</label>
-        <textarea id="racr-falha" placeholder="Descrever falha identificada..."></textarea>
-      </div>
-    </div>
-    <!-- EVIDÊNCIAS / FOTOS -->
-    <div class="card">
-      <div class="card-t">Evidências da Falha (fotos)</div>
-      <div id="racr-foto-drop" class="racr-foto-drop" onclick="document.getElementById('racr-foto-input').click()"
-           ondragover="event.preventDefault();this.classList.add('drag-over')"
-           ondragleave="this.classList.remove('drag-over')"
-           ondrop="event.preventDefault();this.classList.remove('drag-over');racrAddFotos(event.dataTransfer.files)">
-        📷 Clique para anexar fotos ou arraste aqui (máx. 4)
-        <input type="file" id="racr-foto-input" accept="image/*" multiple style="display:none" onchange="racrAddFotos(this.files);this.value=''">
-      </div>
-      <div id="racr-foto-preview" class="racr-foto-grid"></div>
-    </div>
-    <!-- SEÇÃO 3: CAUSA -->
-    <div class="card">
-      <div class="card-t">3 - Causa</div>
-      <div class="fg">
-        <label>Detalhamento da Causa</label>
-        <textarea id="racr-causa" placeholder="Análise detalhada da causa..."></textarea>
-      </div>
-    </div>
-    <!-- SEÇÃO 4: 5 PORQUÊS -->
-    <div class="card">
-      <div class="card-t">4 - Análise dos 5 Porquês</div>
-      <div class="fg">
-        <label>1º Porquê</label>
-        <input type="text" id="racr-p1">
-      </div>
-      <div class="fg">
-        <label>2º Porquê</label>
-        <input type="text" id="racr-p2">
-      </div>
-      <div class="fg">
-        <label>3º Porquê</label>
-        <input type="text" id="racr-p3">
-      </div>
-      <div class="fg">
-        <label>4º Porquê</label>
-        <input type="text" id="racr-p4">
-      </div>
-      <div class="fg">
-        <label>5º Porquê (Raiz)</label>
-        <input type="text" id="racr-p5">
-      </div>
-    </div>
-    <!-- SEÇÃO 5: AÇÃO IMEDIATA -->
-    <div class="card">
-      <div class="card-t">5 - Ação Imediata</div>
-      <div class="fg">
-        <textarea id="racr-imediata" placeholder="Ação imediata realizada..."></textarea>
-      </div>
-    </div>
-    <!-- SEÇÃO 6: AÇÃO PREVENTIVA -->
-    <div class="card">
-      <div class="card-t">6 - Ação Preventiva</div>
-      <div class="fg">
-        <textarea id="racr-preventiva" placeholder="Ação preventiva para evitar recorrência..."></textarea>
-      </div>
-    </div>
-    <!-- SEÇÃO 7: EQUIPE RESPONSÁVEL -->
-    <div class="card">
-      <div class="card-t">7 - Equipe Responsável</div>
-      <div class="fg">
-        <label>Resp. Produção</label>
-        <input type="text" id="racr-resp-prod">
-      </div>
-      <div class="fg">
-        <label>Resp. Manutenção</label>
-        <input type="text" id="racr-resp-manu">
-      </div>
-      <div class="fg">
-        <label>Executantes</label>
-        <input type="text" id="racr-exec">
-      </div>
-    </div>
-    <!-- BOTÕES -->
-    <div class="fa">
-      <button class="btn btn-gh" onclick="fecharRACR()">Cancelar</button>
-      <button class="btn btn-p" onclick="salvarRACR()">💾 Salvar RAC</button>
-      <button class="btn btn-p" onclick="imprimirRACR()">🖨️ Imprimir</button>
-    </div>
-  </div>
-</div>
-  
   <!-- MODAL EDITAR -->
   <div class="mb" id="m-edit"><div class="modal" style="max-width:400px">
    <div class="mhd"><div class="mtit" id="me-t">Editar</div><button class="mcl" onclick="closeM('m-edit')">×</button></div>
@@ -913,7 +595,7 @@ function enterApp() {
   document.getElementById('u-av').textContent = ini;
   document.getElementById('u-nm').textContent = CU.nome;
   document.getElementById('u-rl').textContent = ROLES[CU.tipo]?.label || CU.tipo;
-  document.getElementById('tb-stat').style.display = CU.tipo !== 'producao' ? 'flex' : 'none';
+  document.getElementById('tb-stat').style.display = CU.tipo !== 'gerente' ? 'flex' : 'none';
 
   buildNav();
   populateAll();
@@ -927,7 +609,7 @@ function enterApp() {
   updateNavDots();
 
   // Pré-preenche manutentor
-  if (CU.tipo !== 'producao') {
+  if (CU.tipo !== 'gerente') {
     sv('ab-mn', CU.nome);
     sv('insp-mn', CU.nome);
     sv('insp-tmpl-mn', CU.nome);
@@ -936,7 +618,7 @@ function enterApp() {
   }
 
   // Inicia polling de atualização automática (só admin e manut)
-  if (CU.tipo !== 'producao') {
+  if (CU.tipo !== 'gerente') {
     _pollTimer = setInterval(async () => {
       await apiLoadAll(true, true);
       revalidarSessao();
@@ -1056,10 +738,10 @@ function showPage(pid) {
   if (pid === 'ativos')      { renderAtivos();  apiLoadAll(true).then(renderAtivos).catch(()=>showToast('Erro ao sincronizar Ativos.','er')); }
   if (pid === 'usuarios')      renderUsuarios();
   if (pid === 'abertura') {
-    populateSalas('ab'); sv('ab-dt', today());
-    if (CU.tipo !== 'producao') sv('ab-mn', CU.nome);
+    populateLojas('ab'); sv('ab-dt', today());
+    if (CU.tipo !== 'gerente') sv('ab-mn', CU.nome);
   }
-  if (pid === 'planejamento') { populateSalas('pl'); }
+  if (pid === 'planejamento') { populateLojas('pl'); }
   updateNavDots();
 }
 
@@ -1216,49 +898,49 @@ function loadTheme() {
 // SELECTS — popula dropdowns
 // ══════════════════════════════════════════════════════════════════════
 function populateAll() {
-  ['ab','pl','sol'].forEach(p => populateSalas(p));
-  populateAtMaqSala();
-  populateSalaFilter('fe-sl');
-  populateSalaFilter('insp-tmpl-sala');
+  ['ab','pl','sol'].forEach(p => populateLojas(p));
+  populateAtMaqLoja();
+  populateLojaFilter('fe-sl');
+  populateLojaFilter('insp-tmpl-loja');
 }
 
-function populateSalas(p) {
+function populateLojas(p) {
   const sel = document.getElementById(p + '-sl');
   if (!sel) return;
   const cur = sel.value;
   sel.innerHTML = '<option value="">Selecione...</option>';
-  [...db.salas].sort().forEach(s => sel.innerHTML += `<option value="${s}">${s}</option>`);
+  [...db.lojas].sort().forEach(s => sel.innerHTML += `<option value="${s}">${s}</option>`);
   sel.innerHTML += '<option value="__outros__">Outros (não listado)</option>';
   if (cur) sel.value = cur;
 }
 
 function fMaq(p) {
-  const sala = v(p + '-sl');
+  const loja = v(p + '-sl');
   const sel  = document.getElementById(p + '-mq');
-  sel.innerHTML = '<option value="">Selecione a máquina...</option>';
-  if (sala === '__outros__') {
+  sel.innerHTML = '<option value="">Selecione a área...</option>';
+  if (loja === '__outros__') {
     sel.innerHTML += '<option value="__outros__">Outros (não listado)</option>';
     return;
   }
-  [...db.maquinas].filter(m => m.sala === sala)
+  [...db.areas].filter(m => m.loja === loja)
     .sort((a,b) => a.nome.localeCompare(b.nome))
     .forEach(m => { sel.innerHTML += `<option value="${m.nome}">${m.nome}${m.tag?' ('+m.tag+')':''}</option>`; });
   sel.innerHTML += '<option value="__outros__">Outros (não listado)</option>';
 }
 
-function populateAtMaqSala() {
+function populateAtMaqLoja() {
   const sel = document.getElementById('at-ms');
   if (!sel) return;
   sel.innerHTML = '<option value="">Selecione...</option>';
-  [...db.salas].sort().forEach(s => sel.innerHTML += `<option value="${s}">${s}</option>`);
+  [...db.lojas].sort().forEach(s => sel.innerHTML += `<option value="${s}">${s}</option>`);
 }
 
-function populateSalaFilter(id) {
+function populateLojaFilter(id) {
   const sel = document.getElementById(id);
   if (!sel) return;
   const cur = sel.value;
-  sel.innerHTML = '<option value="">Todas as Salas</option>';
-  [...db.salas].sort().forEach(s => sel.innerHTML += `<option value="${s}">${s}</option>`);
+  sel.innerHTML = '<option value="">Todas as Lojas</option>';
+  [...db.lojas].sort().forEach(s => sel.innerHTML += `<option value="${s}">${s}</option>`);
   if (cur) sel.value = cur;
 }
 
@@ -1279,7 +961,7 @@ function irParaCard(pageId) {
 function goToPage(pageId) {
   document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
   document.getElementById('pg-' + pageId).classList.add('on');
-  document.getElementById('tb-t').textContent = pageId === 'salas-status' ? 'Status de Salas' : 'Dashboard';
+  document.getElementById('tb-t').textContent = pageId === 'lojas-status' ? 'Status de Lojas' : 'Dashboard';
 }
 
 init();
