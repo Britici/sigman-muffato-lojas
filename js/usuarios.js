@@ -85,6 +85,38 @@ function _usrPopulatePerfil() {
   sel.innerHTML = Object.keys(ROLES).map(k => `<option value="${k}">${ROLES[k].label}</option>`).join('');
 }
 
+// Renderiza a lista de checkboxes de lojas. `lojasSelecionadas` = array de
+// nomes já marcados; `todas` = true marca o toggle "Todas as lojas" e
+// desabilita a lista individual.
+function _usrPopulateLojas(lojasSelecionadas, todas) {
+  const wrap = document.getElementById('usr-lojas-lista');
+  const chkTodas = document.getElementById('usr-lojas-todas');
+  chkTodas.checked = !!todas;
+  wrap.innerHTML = [...db.lojas].sort().map(l => `
+    <div style="display:flex;align-items:center;gap:6px;padding:2px 0">
+      <input type="checkbox" class="usr-loja-chk" value="${l}"${(lojasSelecionadas||[]).includes(l) ? ' checked' : ''}>
+      <label style="font-weight:400;margin:0">${l}</label>
+    </div>`).join('') || '<div style="color:var(--txt3);font-size:13px">Nenhuma loja cadastrada.</div>';
+  _usrToggleTodasLojas(); // aplica disabled conforme o estado do toggle
+}
+
+function _usrToggleTodasLojas() {
+  const todas = document.getElementById('usr-lojas-todas').checked;
+  document.querySelectorAll('.usr-loja-chk').forEach(c => c.disabled = todas);
+}
+
+// Perfil "administracao" enxerga tudo por definição — o bloco de lojas
+// não se aplica e fica oculto pra não confundir.
+function _usrOnPerfilChange() {
+  const perfil = v('usr-perfil');
+  const fg = document.getElementById('usr-lojas-fg');
+  fg.style.display = perfil === 'administracao' ? 'none' : 'block';
+}
+
+function _usrLojasSelecionadas() {
+  return [...document.querySelectorAll('.usr-loja-chk:checked')].map(c => c.value);
+}
+
 function abrirNovoUsuario() {
   _usrPopulatePerfil();
   document.getElementById('usr-m-t').textContent = 'Novo Usuário';
@@ -95,6 +127,8 @@ function abrirNovoUsuario() {
   document.getElementById('usr-login').disabled = false;
   document.getElementById('usr-perfil').value = 'manutencao';
   document.getElementById('usr-senha-info').style.display = 'block';
+  _usrPopulateLojas([], false);
+  _usrOnPerfilChange();
   openM('m-usr');
 }
 
@@ -110,6 +144,8 @@ function abrirEditarUsuario(login) {
   document.getElementById('usr-login').disabled = true; // login é a chave — não muda por aqui
   document.getElementById('usr-perfil').value = u.tipo;
   document.getElementById('usr-senha-info').style.display = 'none';
+  _usrPopulateLojas(u.lojas || [], !!u.todasLojas);
+  _usrOnPerfilChange();
   openM('m-usr');
 }
 
@@ -123,22 +159,31 @@ async function salvarUsuario() {
 
   if (!nome || !login) { showAlert('al-usr', 'Nome e Login são obrigatórios.', 'err'); return; }
 
+  // Administração sempre tem acesso total — não depende do que está marcado
+  // no bloco de lojas (que fica oculto pra esse perfil).
+  const todasLojas = perfil === 'administracao' || document.getElementById('usr-lojas-todas').checked;
+  const lojasSel   = todasLojas ? [] : _usrLojasSelecionadas();
+  if (!todasLojas && !lojasSel.length) {
+    showAlert('al-usr', 'Selecione ao menos 1 loja, ou marque "Todas as lojas".', 'err'); return;
+  }
+  const lojasStr = todasLojas ? '*' : lojasSel.join(',');
+
   if (isNovo) {
     const existe = db.usuarios.some(u => u.login.toLowerCase() === login);
     if (existe) { showAlert('al-usr', 'Já existe um usuário com esse login.', 'err'); return; }
 
     const res = await apiAppend('usuarios', {
-      Login: login, Nome: nome, Cargo: cargo, Tipo_Acesso: perfil,
+      Login: login, Nome: nome, Cargo: cargo, Tipo_Acesso: perfil, Lojas: lojasStr,
       Senha_Hash: 'mudar123', Ativo: 'sim', Criado_Em: new Date().toISOString()
     });
     if (!res || !res.ok) { showAlert('al-usr', 'Erro ao criar usuário: ' + (res && res.error || 'sem conexão'), 'err'); return; }
-    db.usuarios.push({ login, nome, cargo, tipo: perfil, senha: 'mudar123', ativo: true });
+    db.usuarios.push({ login, nome, cargo, tipo: perfil, senha: 'mudar123', ativo: true, todasLojas, lojas: lojasSel });
     showAlert('al-usr', 'Usuário criado. Senha inicial: mudar123', 'ok');
   } else {
-    const res = await apiUpdate('usuarios', origLogin, 'Login', { Nome: nome, Cargo: cargo, Tipo_Acesso: perfil });
+    const res = await apiUpdate('usuarios', origLogin, 'Login', { Nome: nome, Cargo: cargo, Tipo_Acesso: perfil, Lojas: lojasStr });
     if (!res || !res.ok) { showAlert('al-usr', 'Erro ao salvar: ' + (res && res.error || 'sem conexão'), 'err'); return; }
     const u = db.usuarios.find(x => x.login === origLogin);
-    if (u) { u.nome = nome; u.cargo = cargo; u.tipo = perfil; }
+    if (u) { u.nome = nome; u.cargo = cargo; u.tipo = perfil; u.todasLojas = todasLojas; u.lojas = lojasSel; }
     showAlert('al-usr', 'Usuário atualizado.', 'ok');
   }
 

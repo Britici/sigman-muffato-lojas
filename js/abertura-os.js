@@ -182,7 +182,7 @@ function renderSol() {
   const [col, dir] = sortVal.split('-');
   const prioMap = { '1':1, 'Alta':2, '2':2, 'Média':3, '3':3, 'Baixa':4, '4':4 };
   const stMap   = { 'Não Executada':1, 'Concluída':2, 'Executada':3 };
-  let list = [...db.solicitacoes];
+  let list = solicitacoesVisiveis();
   if (CU && CU.tipo === 'gerente') list = list.filter(s => s.solicitante === CU.nome);
   list.sort((a, b) => {
     let va = a[col] || '', vb = b[col] || '';

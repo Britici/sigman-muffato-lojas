@@ -48,6 +48,56 @@ const ROLES = {
 
 let CU = null; // usuário logado
 let _pollTimer = null; // timer de atualização automática
+
+// ══════════════════════════════════════════════════════════════════════
+// ÁREAS PADRÃO — criadas automaticamente ao cadastrar uma loja nova
+// ══════════════════════════════════════════════════════════════════════
+const AREAS_PADRAO = [
+  'PADARIA', 'AÇOUGUE', 'DEPÓSITO', 'PORTARIA',
+  'ESTACIONAMENTO', 'CÂMARAS FRIAS', 'INTERIOR LOJA', 'SALA MÁQUINAS'
+];
+
+// ══════════════════════════════════════════════════════════════════════
+// RESTRIÇÃO DE ACESSO POR LOJA (gerente / manutenção)
+// Administração sempre vê tudo. CU.todasLojas = true também vê tudo
+// (usuário de manutenção/gerente multi-função). Caso contrário, só as
+// lojas listadas em CU.lojas.
+// IMPORTANTE: estas funções NÃO alteram db.lojas/db.ordens/etc — elas
+// devolvem cópias filtradas. Nunca filtre os arrays de `db` em memória
+// (eles são persistidos em localStorage por saveDB() e são compartilhados
+// entre logins no mesmo navegador; filtrar em memória vazaria a visão
+// restrita de um usuário para o próximo que logar no mesmo aparelho).
+// ══════════════════════════════════════════════════════════════════════
+function usuarioTemAcessoTotal() {
+  return !!(CU && (CU.tipo === 'administracao' || CU.todasLojas));
+}
+
+function usuarioTemAcessoLoja(loja) {
+  if (!CU) return false;
+  if (usuarioTemAcessoTotal()) return true;
+  return (CU.lojas || []).includes(loja);
+}
+
+function lojasPermitidas() {
+  if (usuarioTemAcessoTotal()) return [...db.lojas];
+  return db.lojas.filter(l => usuarioTemAcessoLoja(l));
+}
+
+function planejadasVisiveis() {
+  if (usuarioTemAcessoTotal()) return [...db.planejadas];
+  return db.planejadas.filter(p => usuarioTemAcessoLoja(p.loja));
+}
+
+function ordensVisiveis() {
+  if (usuarioTemAcessoTotal()) return [...db.ordens];
+  return db.ordens.filter(o => usuarioTemAcessoLoja(o.loja));
+}
+
+function solicitacoesVisiveis() {
+  if (usuarioTemAcessoTotal()) return [...db.solicitacoes];
+  return db.solicitacoes.filter(s => usuarioTemAcessoLoja(s.loja));
+}
+
 let _dashTimer = null; // timer específico do dashboard (15s)
 let _curDet = null;
 let _dashAutoRf = false; // auto-refresh dashboard ativo?
@@ -308,13 +358,16 @@ async function apiLoadAll(silent = false, force = false) {
         const loc = localUsers.find(u => u.login === r.Login);
         // Prioridade: senha alterada no app (localStorage) > Senha_Hash do Sheets > fallback
         const senha = loc ? loc.senha : (r.Senha_Hash || 'mudar123');
+        const lojasRaw = normStr(r.Lojas);
         return {
           login: r.Login,
           nome: r.Nome,
           cargo: r.Cargo || '',
           tipo: r.Tipo_Acesso,
           senha,
-          ativo: String(r.Ativo).toLowerCase() !== 'nao'
+          ativo: String(r.Ativo).toLowerCase() !== 'nao',
+          todasLojas: lojasRaw === '*',
+          lojas: (lojasRaw && lojasRaw !== '*') ? lojasRaw.split(',').map(s => s.trim()).filter(Boolean) : []
         };
       });
   } else if (localUsers.length) {

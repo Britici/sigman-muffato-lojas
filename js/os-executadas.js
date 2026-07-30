@@ -19,7 +19,7 @@ function renderExec() {
   const mnSel = document.getElementById('fe-mn');
   if (mnSel) {
     const cur = mnSel.value;
-    const manuts = [...new Set(db.ordens.map(o=>o.manut).filter(Boolean))].sort();
+    const manuts = [...new Set(ordensVisiveis().map(o=>o.manut).filter(Boolean))].sort();
     mnSel.innerHTML = '<option value="">Todos os Manut.</option>' + manuts.map(m=>`<option value="${m}">${m}</option>`).join('');
     if (cur) mnSel.value = cur;
   }
@@ -31,7 +31,7 @@ function renderExec() {
   const dtI = v('fe-dt-ini');
   const dtF = v('fe-dt-fim');
 
-  let data = [...db.ordens];
+  let data = ordensVisiveis();
   if (tx) data = data.filter(o => [o.numero,o.loja,o.maq,o.manut,o.tipo].some(x=>x&&x.toLowerCase().includes(tx)));
   if (tp) data = data.filter(o => o.tipo === tp);
   if (sl) data = data.filter(o => o.loja === sl);
@@ -110,7 +110,7 @@ function exportCSV() {
   const dtI = v('fe-dt-ini');
   const dtF = v('fe-dt-fim');
 
-  let data = [...db.ordens];
+  let data = ordensVisiveis();
   if (tx) data = data.filter(o => [o.numero,o.loja,o.maq,o.manut,o.tipo].some(x=>x&&x.toLowerCase().includes(tx)));
   if (tp) data = data.filter(o => o.tipo === tp);
   if (sl) data = data.filter(o => o.loja === sl);

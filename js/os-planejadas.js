@@ -34,7 +34,7 @@ function renderPlan() {
   const dtI = v('fp-dt-ini');
   const dtF = v('fp-dt-fim');
 
-  let data = [...db.planejadas];
+  let data = planejadasVisiveis();
   if (tx)  data = data.filter(p => [p.numero, p.loja, p.maq, p.tipo].some(x => x && x.toLowerCase().includes(tx)));
   if (tp)  data = data.filter(p => p.tipo === tp);
   if (sl)  data = data.filter(p => p.loja === sl);
@@ -106,7 +106,7 @@ function exportPlanCSV() {
   const st  = v('fp-st');
   const dtI = v('fp-dt-ini');
   const dtF = v('fp-dt-fim');
-  let data = [...db.planejadas];
+  let data = planejadasVisiveis();
   if (tx)  data = data.filter(p => [p.numero, p.loja, p.maq, p.tipo].some(x => x && x.toLowerCase().includes(tx)));
   if (tp)  data = data.filter(p => p.tipo === tp);
   if (sl)  data = data.filter(p => p.loja === sl);
@@ -132,7 +132,7 @@ function editarPlan(id) {
   if (!p) return;
   document.getElementById('me-t').textContent = 'Editar O.S. Planejada — ' + p.numero;
 
-  const lojasOpts = db.lojas.sort().map(s =>
+  const lojasOpts = lojasPermitidas().sort().map(s =>
     `<option value="${s}"${s===p.loja?' selected':''}>${s}</option>`
   ).join('');
 

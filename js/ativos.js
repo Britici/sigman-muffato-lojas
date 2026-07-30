@@ -73,11 +73,25 @@ function addLoja() {
   if (db.lojas.includes(nome)) { showToast('Loja já existe.'); return; }
   db.lojas.push(nome);
   db.lojas.sort();
+
+  // Cria automaticamente as áreas padrão para a loja nova.
+  // Se alguma já existir com o mesmo id (mesma loja+nome), pula — evita
+  // duplicar em caso de reenvio/retry.
+  const agora = new Date().toISOString();
+  AREAS_PADRAO.forEach(areaNome => {
+    const id = (nome + '_' + areaNome).replace(/\s+/g, '_');
+    if (db.areas.some(a => a.id === id)) return;
+    db.areas.push({ id, nome: areaNome, loja: nome, tag: '' });
+    apiAppend('areas', { ID_Area: id, Loja: nome, Nome: areaNome, Tag: '', Descricao: '', Ativo: 'sim', Criado_Em: agora });
+  });
+  db.areas.sort((a, b) => (a.loja + a.nome).localeCompare(b.loja + b.nome));
+
   saveDB();
   sv('at-sn', '');
   populateAll();
   renderAtivos();
-  apiAppend('lojas', { Nome: nome, Ativo: 'sim', Criado_Em: new Date().toISOString() });
+  apiAppend('lojas', { Nome: nome, Ativo: 'sim', Criado_Em: agora });
+  showToast(`Loja criada com as ${AREAS_PADRAO.length} áreas padrão.`);
 }
 
 function addMaq() {

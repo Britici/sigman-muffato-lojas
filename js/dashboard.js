@@ -37,13 +37,13 @@ function renderDash() {
     endDate = document.getElementById('dash-dt-fim')?.value || t;
   }
 
-  const ordPer = db.ordens.filter(o => o.data && o.data >= startDate && o.data <= endDate);
+  const ordPer = ordensVisiveis().filter(o => o.data && o.data >= startDate && o.data <= endDate);
   const total  = ordPer.length;
-  const hj     = db.ordens.filter(o => o.data === t).length;
+  const hj     = ordensVisiveis().filter(o => o.data === t).length;
 
-  const plOpen   = db.planejadas.filter(p => p.status !== 'Concluída').length;
-  const plAtras  = db.planejadas.filter(p => p.status === 'Atrasada').length;
-  const solPend  = db.solicitacoes.filter(s => s.status === 'Não Executada').length;
+  const plOpen   = planejadasVisiveis().filter(p => p.status !== 'Concluída').length;
+  const plAtras  = planejadasVisiveis().filter(p => p.status === 'Atrasada').length;
+  const solPend  = solicitacoesVisiveis().filter(s => s.status === 'Não Executada').length;
 
   // Tempo médio de atendimento (min) — OS do período com duração registrada
   const ordComTempo = ordPer.filter(o => o.durMin > 0);
@@ -56,8 +56,8 @@ function renderDash() {
   if (banner) {
     const amanhaDt = new Date(); amanhaDt.setDate(amanhaDt.getDate()+1);
     const amanha = amanhaDt.toISOString().slice(0,10);
-    const venceHoje   = db.planejadas.filter(p => p.prazo === t && p.status !== 'Concluída');
-    const venceAmanha = db.planejadas.filter(p => p.prazo === amanha && p.status !== 'Concluída');
+    const venceHoje   = planejadasVisiveis().filter(p => p.prazo === t && p.status !== 'Concluída');
+    const venceAmanha = planejadasVisiveis().filter(p => p.prazo === amanha && p.status !== 'Concluída');
     if (venceHoje.length || venceAmanha.length) {
       banner.style.display = 'block';
       banner.innerHTML = `<div style="background:rgba(196,18,48,.12);border:1px solid rgba(196,18,48,.4);border-radius:var(--rs);padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px">
@@ -111,7 +111,7 @@ function renderDash() {
   renderTopAreas('d-top-maq', ordPer);
 
   // Últimas 5 OS executadas
-  const rec = [...db.ordens].reverse().slice(0,5);
+  const rec = [...ordensVisiveis()].reverse().slice(0,5);
   document.getElementById('d-rec').innerHTML = rec.length === 0
     ? '<div class="empty"><div class="ei">📋</div><p>Nenhuma O.S. ainda.</p></div>'
     : rec.map(o => `
@@ -128,7 +128,7 @@ function renderDash() {
       </div>`).join('');
 
   // Planejadas abertas
-  const plA = [...db.planejadas].filter(p => p.status !== 'Concluída').slice(0,5);
+  const plA = [...planejadasVisiveis()].filter(p => p.status !== 'Concluída').slice(0,5);
   document.getElementById('d-plan').innerHTML = plA.length === 0
     ? '<div class="empty"><div class="ei">📅</div><p>Sem O.S. planejadas abertas.</p></div>'
     : plA.map(p => `
@@ -152,7 +152,7 @@ function renderDash() {
       </div>`).join('');
 
   // Solicitações pendentes
-  const spL = db.solicitacoes.filter(s => s.status === 'Não Executada').slice(0,5);
+  const spL = solicitacoesVisiveis().filter(s => s.status === 'Não Executada').slice(0,5);
   document.getElementById('d-sol').innerHTML = spL.length === 0
     ? '<div class="empty"><div class="ei">📣</div><p>Sem solicitações pendentes.</p></div>'
     : spL.map(s => `
@@ -255,7 +255,7 @@ function renderTrend(containerId) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     meses.push(d.toISOString().slice(0,7));
   }
-  const counts = meses.map(m => db.ordens.filter(o => (o.data||'').slice(0,7) === m).length);
+  const counts = meses.map(m => ordensVisiveis().filter(o => (o.data||'').slice(0,7) === m).length);
   const max = Math.max(1, ...counts);
   const lbls = { };
   el.innerHTML = `<div style="display:flex;align-items:flex-end;gap:10px;height:120px;padding-top:8px">
@@ -279,7 +279,7 @@ function renderTrend(containerId) {
 function renderProximas(containerId) {
   const el = document.getElementById(containerId);
   if (!el) return;
-  const prox = db.planejadas
+  const prox = planejadasVisiveis()
     .filter(p => p.status !== 'Concluída' && p.prazo)
     .sort((a,b) => a.prazo.localeCompare(b.prazo))
     .slice(0,5);
