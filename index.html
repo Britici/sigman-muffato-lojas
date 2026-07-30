@@ -399,7 +399,15 @@
     <div class="fg"><label>Nome</label><input type="text" id="usr-nome" placeholder="Nome completo"></div>
     <div class="fg"><label>Cargo</label><input type="text" id="usr-cargo" placeholder="Ex: Mecânico, Eletricista..."></div>
     <div class="fg"><label>Login</label><input type="text" id="usr-login" placeholder="login de acesso"></div>
-    <div class="fg"><label>Perfil</label><select id="usr-perfil"></select></div>
+    <div class="fg"><label>Perfil</label><select id="usr-perfil" onchange="_usrOnPerfilChange()"></select></div>
+    <div class="fg" id="usr-lojas-fg">
+     <label>Lojas com Acesso</label>
+     <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+      <input type="checkbox" id="usr-lojas-todas" onchange="_usrToggleTodasLojas()">
+      <label for="usr-lojas-todas" style="font-weight:400;margin:0">Todas as lojas (multifunção)</label>
+     </div>
+     <div id="usr-lojas-lista" style="max-height:160px;overflow-y:auto;border:1px solid var(--bord);border-radius:8px;padding:8px"></div>
+    </div>
     <div class="fg" id="usr-senha-info" style="display:none;color:var(--txt3);font-size:13px">
      Senha inicial: <b>mudar123</b> (o usuário pode trocar depois de logar).
     </div>
@@ -909,7 +917,7 @@ function populateLojas(p) {
   if (!sel) return;
   const cur = sel.value;
   sel.innerHTML = '<option value="">Selecione...</option>';
-  [...db.lojas].sort().forEach(s => sel.innerHTML += `<option value="${s}">${s}</option>`);
+  [...lojasPermitidas()].sort().forEach(s => sel.innerHTML += `<option value="${s}">${s}</option>`);
   sel.innerHTML += '<option value="__outros__">Outros (não listado)</option>';
   if (cur) sel.value = cur;
 }
@@ -940,7 +948,7 @@ function populateLojaFilter(id) {
   if (!sel) return;
   const cur = sel.value;
   sel.innerHTML = '<option value="">Todas as Lojas</option>';
-  [...db.lojas].sort().forEach(s => sel.innerHTML += `<option value="${s}">${s}</option>`);
+  [...lojasPermitidas()].sort().forEach(s => sel.innerHTML += `<option value="${s}">${s}</option>`);
   if (cur) sel.value = cur;
 }
 
