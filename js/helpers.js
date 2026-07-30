@@ -151,7 +151,7 @@ function stBadge(s) {
 
 function roleBadge(t) {
   const c = {administracao:'b-adm',manutencao:'b-man',gerente:'b-pro'};
-  const l = {administracao:'Administração',manutencao:'Manutenção',gerente:'Gerente'};
+  const l = {administracao:'Administração',manutencao:'Manutenção',gerente:'Gerente de Loja'};
   return `<span class="badge ${c[t]||''}">${l[t]||t}</span>`;
 }
 

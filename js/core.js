@@ -41,7 +41,7 @@ const ROLES = {
     menus: ['dashboard','planejadas','executadas','abertura']
   },
   gerente: {
-    label: 'Gerente',
+    label: 'Gerente de Loja',
     menus: ['solicitacao']
   }
 };
