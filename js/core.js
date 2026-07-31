@@ -16,6 +16,7 @@ const CACHE_TTL_MS = 180000; // TTL do readAll: só busca novamente após 3 min
 // ══════════════════════════════════════════════════════════════════════
 let db = {
   lojas: [],
+  lojasTag: {}, // {NOME_DA_LOJA: 'valor do indexador'} — indexador é o antigo campo Tag, agora em nível de loja
   areas: [],
   ordens: [],
   planejadas: [],
@@ -72,10 +73,16 @@ function usuarioTemAcessoTotal() {
   return !!(CU && (CU.tipo === 'administracao' || CU.todasLojas));
 }
 
+function tagDaLoja(loja) {
+  return (db.lojasTag && db.lojasTag[loja]) || '';
+}
+
 function usuarioTemAcessoLoja(loja) {
   if (!CU) return false;
   if (usuarioTemAcessoTotal()) return true;
-  return (CU.lojas || []).includes(loja);
+  if ((CU.lojas || []).includes(loja)) return true;
+  const tag = tagDaLoja(loja);
+  return !!tag && (CU.indexadores || []).includes(tag);
 }
 
 function lojasPermitidas() {
@@ -359,6 +366,7 @@ async function apiLoadAll(silent = false, force = false) {
         // Prioridade: senha alterada no app (localStorage) > Senha_Hash do Sheets > fallback
         const senha = loc ? loc.senha : (r.Senha_Hash || 'mudar123');
         const lojasRaw = normStr(r.Lojas);
+        const indexRaw = normStr(r.Indexadores);
         return {
           login: r.Login,
           nome: r.Nome,
@@ -367,7 +375,8 @@ async function apiLoadAll(silent = false, force = false) {
           senha,
           ativo: String(r.Ativo).toLowerCase() !== 'nao',
           todasLojas: lojasRaw === '*',
-          lojas: (lojasRaw && lojasRaw !== '*') ? lojasRaw.split(',').map(s => s.trim()).filter(Boolean) : []
+          lojas: (lojasRaw && lojasRaw !== '*') ? lojasRaw.split(',').map(s => s.trim()).filter(Boolean) : [],
+          indexadores: indexRaw ? indexRaw.split(',').map(s => s.trim()).filter(Boolean) : []
         };
       });
   } else if (localUsers.length) {
@@ -376,8 +385,11 @@ async function apiLoadAll(silent = false, force = false) {
 
   // Ativos (Lojas e Áreas) — substitui completamente pelo Sheets (reflete exclusões)
   if (d.lojas && d.lojas.length) {
-    db.lojas = d.lojas.filter(r => r.Ativo !== 'nao').map(r => normStr(r.Nome)).filter(Boolean);
+    const lojasAtivas = d.lojas.filter(r => r.Ativo !== 'nao');
+    db.lojas = lojasAtivas.map(r => normStr(r.Nome)).filter(Boolean);
     db.lojas.sort();
+    db.lojasTag = {};
+    lojasAtivas.forEach(r => { db.lojasTag[normStr(r.Nome)] = normStr(r.Tag); });
   }
   if (d.areas && d.areas.length) {
     db.areas = d.areas.filter(r => r.Ativo !== 'nao').map(r => ({
@@ -404,7 +416,7 @@ async function apiLoadAll(silent = false, force = false) {
 function saveDB() {
   try {
     localStorage.setItem('sigman_v4', JSON.stringify({
-      lojas: db.lojas, areas: db.areas,
+      lojas: db.lojas, lojasTag: db.lojasTag, areas: db.areas,
       ordens: db.ordens, planejadas: db.planejadas,
       solicitacoes: db.solicitacoes,
       osC: db.osC, plC: db.plC, solC: db.solC,

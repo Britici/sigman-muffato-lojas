@@ -16,7 +16,7 @@ function renderAtivos() {
     ? '<div class="empty"><p>Nenhuma loja.</p></div>'
     : [...db.lojas].sort().map((s,i)=>`
       <div class="edit-row">
-        <span style="font-size:15px;font-weight:500">${s}</span>
+        <span style="font-size:15px;font-weight:500">${s}${tagDaLoja(s)?` <span style="font-size:11px;color:var(--txt3)">[${tagDaLoja(s)}]</span>`:''}</span>
         <div class="edit-acts">
           <button class="btn btn-edit btn-sm" onclick="openEdit('loja',${db.lojas.indexOf(s)})">✎</button>
           <button class="btn btn-d" onclick="delLoja('${s}')">✕</button>
@@ -54,7 +54,7 @@ function renderAtivos() {
         const gi=db.areas.indexOf(m);
         return `<div class="edit-row">
           <div>
-            <div style="font-size:15px;font-weight:500">${m.nome}${m.tag?` <span style="font-size:11px;color:var(--txt3)">${m.tag}</span>`:''}</div>
+            <div style="font-size:15px;font-weight:500">${m.nome}</div>
           </div>
           <div class="edit-acts">
             <button class="btn btn-edit btn-sm" onclick="openEdit('maq',${gi})">✎</button>
@@ -69,10 +69,12 @@ async function popularModeloPadraoSelect() { /* removido — módulo Preventiva 
 
 function addLoja() {
   const nome = v('at-sn').trim().toUpperCase();
+  const idx = v('at-si').trim().toUpperCase(); // indexador (opcional) — várias lojas podem compartilhar o mesmo valor
   if (!nome) { showToast('Informe o nome da loja.'); return; }
   if (db.lojas.includes(nome)) { showToast('Loja já existe.'); return; }
   db.lojas.push(nome);
   db.lojas.sort();
+  db.lojasTag[nome] = idx;
 
   // Cria automaticamente as áreas padrão para a loja nova.
   // Se alguma já existir com o mesmo id (mesma loja+nome), pula — evita
@@ -87,28 +89,28 @@ function addLoja() {
   db.areas.sort((a, b) => (a.loja + a.nome).localeCompare(b.loja + b.nome));
 
   saveDB();
-  sv('at-sn', '');
+  sv('at-sn', ''); sv('at-si', '');
   populateAll();
   renderAtivos();
-  apiAppend('lojas', { Nome: nome, Ativo: 'sim', Criado_Em: agora });
+  apiAppend('lojas', { Nome: nome, Tag: idx, Ativo: 'sim', Criado_Em: agora });
   showToast(`Loja criada com as ${AREAS_PADRAO.length} áreas padrão.`);
 }
 
 function addMaq() {
-  const loja=v('at-ms'), nome=v('at-mn').trim().toUpperCase(),
-  tag=v('at-mt').trim().toUpperCase();
+  const loja=v('at-ms'), nome=v('at-mn').trim().toUpperCase();
   if(!loja||!nome){showToast('Selecione loja e informe o nome.');return;}
   const id=(loja+'_'+nome).replace(/\s+/g,'_');
-  db.areas.push({id,nome,loja,tag});
+  db.areas.push({id,nome,loja,tag:''});
   db.areas.sort((a,b)=>(a.loja+a.nome).localeCompare(b.loja+b.nome));
-  saveDB(); sv('at-mn',''); sv('at-mt',''); populateAll(); renderAtivos();
-  apiAppend('areas',{ID_Area:id,Loja:loja,Nome:nome,Tag:tag,Descricao:'',Ativo:'sim',Criado_Em:new Date().toISOString()});
+  saveDB(); sv('at-mn',''); populateAll(); renderAtivos();
+  apiAppend('areas',{ID_Area:id,Loja:loja,Nome:nome,Tag:'',Descricao:'',Ativo:'sim',Criado_Em:new Date().toISOString()});
 }
 
 function delLoja(nome) {
   if(!confirm(`Remover loja "${nome}" e suas áreas?`))return;
   db.lojas=db.lojas.filter(s=>s!==nome);
   db.areas=db.areas.filter(m=>m.loja!==nome);
+  delete db.lojasTag[nome];
   saveDB();populateAll();renderAtivos();
   apiDelete('lojas',nome,'Nome');
 }
@@ -124,8 +126,11 @@ function delMaq(i) {
 function openEdit(type,idx) {
   _editType=type;_editIdx=idx;
   if(type==='loja'){
+    const nome = db.lojas[idx];
     document.getElementById('me-t').textContent='Editar Loja';
-    document.getElementById('me-b').innerHTML=`<div class="fg"><label>Nome da Loja</label><input type="text" id="me-v" value="${db.lojas[idx]}"></div>`;
+    document.getElementById('me-b').innerHTML=`
+      <div class="fg"><label>Nome da Loja</label><input type="text" id="me-v" value="${nome}"></div>
+      <div class="fg"><label>Índex (opcional — várias lojas podem usar o mesmo)</label><input type="text" id="me-ix" value="${tagDaLoja(nome)}"></div>`;
   } else if(type==='maq') {
     const m=db.areas[idx];
     document.getElementById('me-t').textContent='Editar Área';
@@ -133,8 +138,7 @@ function openEdit(type,idx) {
       <div class="fg"><label>Loja</label>
         <select id="me-sl">${db.lojas.sort().map(s=>`<option${s===m.loja?' selected':''}>${s}</option>`).join('')}</select>
       </div>
-      <div class="fg"><label>Nome</label><input type="text" id="me-nm" value="${m.nome}"></div>
-      <div class="fg"><label>Tag</label><input type="text" id="me-tg" value="${m.tag||''}"></div>`;
+      <div class="fg"><label>Nome</label><input type="text" id="me-nm" value="${m.nome}"></div>`;
   } else if(type==='plan') {
     // editarPlan já preenche me-b antes de abrir
   }
@@ -144,17 +148,20 @@ function openEdit(type,idx) {
 function salvarEdit() {
   if(_editType==='loja'){
     const nv=v('me-v').trim().toUpperCase();if(!nv)return;
+    const nvIdx=v('me-ix').trim().toUpperCase();
     const old=db.lojas[_editIdx];
     db.lojas[_editIdx]=nv;db.areas.forEach(m=>{if(m.loja===old)m.loja=nv;});
+    delete db.lojasTag[old];
+    db.lojasTag[nv]=nvIdx;
     saveDB();populateAll();renderAtivos();closeM('m-edit');
-    apiUpdate('lojas',old,'Nome',{Nome:nv});
+    apiUpdate('lojas',old,'Nome',{Nome:nv,Tag:nvIdx});
   } else if(_editType==='maq') {
     const old=db.areas[_editIdx];
-    const nv={id:old.id,nome:v('me-nm').trim().toUpperCase(),loja:v('me-sl'),tag:v('me-tg').trim().toUpperCase()};
+    const nv={id:old.id,nome:v('me-nm').trim().toUpperCase(),loja:v('me-sl'),tag:old.tag||''};
     db.areas[_editIdx]=nv;
     db.areas.sort((a,b)=>(a.loja+a.nome).localeCompare(b.loja+b.nome));
     saveDB();populateAll();renderAtivos();closeM('m-edit');
-    apiUpdate('areas',old.id,'ID_Area',{Loja:nv.loja,Nome:nv.nome,Tag:nv.tag});
+    apiUpdate('areas',old.id,'ID_Area',{Loja:nv.loja,Nome:nv.nome});
   } else if(_editType==='plan') {
     const p = db.planejadas.find(x => x.numero === _editIdx);
     if (!p) return;

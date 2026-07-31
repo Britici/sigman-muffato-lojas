@@ -335,6 +335,7 @@
        <div class="card-t" onclick="toggleAtFold('at-card-loja')"><span>+ Nova Loja / Local</span><span class="card-t-chev">▾</span></div>
        <div class="card-fold-body">
         <div class="fg"><label>Nome da Loja</label><input type="text" id="at-sn" placeholder="Ex: Loja 1004 - João Paulino"></div>
+        <div class="fg"><label>Índex (opcional — várias lojas podem usar o mesmo)</label><input type="text" id="at-si" placeholder="Ex: REGIAO-NORTE"></div>
         <button class="btn btn-p btn-sm" onclick="addLoja()">+ Adicionar</button>
        </div>
       </div>
@@ -346,7 +347,6 @@
        <div class="card-fold-body">
         <div class="fg"><label>Loja</label><select id="at-ms"><option value="">Selecione...</option></select></div>
         <div class="fg"><label>Nome da Área</label><input type="text" id="at-mn" placeholder="Ex: Câmara Fria"></div>
-        <div class="fg"><label>Tag / Código</label><input type="text" id="at-mt" placeholder="Ex: CF-001"></div>
         <button class="btn btn-p btn-sm" onclick="addMaq()">+ Adicionar</button>
        </div>
       </div>
@@ -354,7 +354,7 @@
         <div class="card-t" style="flex-wrap:wrap;gap:8px">
           <span>Áreas Cadastradas</span>
           <div style="display:flex;gap:6px;margin-left:auto">
-            <input type="text" id="at-ml-busca" oninput="renderAtivos()" placeholder="Buscar nome ou tag..." style="font-size:14px;background:var(--inp);border:1px solid var(--bord);border-radius:var(--rs);color:var(--txt);padding:4px 8px;outline:none;width:140px">
+            <input type="text" id="at-ml-busca" oninput="renderAtivos()" placeholder="Buscar área..." style="font-size:14px;background:var(--inp);border:1px solid var(--bord);border-radius:var(--rs);color:var(--txt);padding:4px 8px;outline:none;width:140px">
             <select id="at-ml-fil" onchange="renderAtivos()" style="font-size:14px;background:var(--inp);border:1px solid var(--bord);border-radius:var(--rs);color:var(--txt);padding:4px 8px;outline:none;max-width:140px">
               <option value="">Todas as Lojas</option>
             </select>
@@ -402,11 +402,16 @@
     <div class="fg"><label>Perfil</label><select id="usr-perfil" onchange="_usrOnPerfilChange()"></select></div>
     <div class="fg" id="usr-lojas-fg">
      <label>Lojas com Acesso</label>
-     <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
-      <input type="checkbox" id="usr-lojas-todas" onchange="_usrToggleTodasLojas()">
-      <label for="usr-lojas-todas" style="font-weight:400;margin:0">Todas as lojas (multifunção)</label>
+     <div id="usr-lojas-todas-row" class="chk-row" data-checked="0" onclick="_usrToggleTodasLojas()" style="display:flex;align-items:center;gap:8px;padding:4px 2px;cursor:pointer;user-select:none">
+      <span class="chk-box" style="font-family:monospace;font-size:15px;min-width:26px">[ ]</span>
+      <span>Todas as lojas (multifunção)</span>
      </div>
-     <div id="usr-lojas-lista" style="max-height:160px;overflow-y:auto;border:1px solid var(--bord);border-radius:8px;padding:8px"></div>
+     <div id="usr-lojas-lista" style="max-height:160px;overflow-y:auto;border:1px solid var(--bord);border-radius:8px;padding:4px 8px;margin-top:4px"></div>
+    </div>
+    <div class="fg" id="usr-index-fg">
+     <label>Indexadores com Acesso</label>
+     <div style="font-size:12px;color:var(--txt3);margin-bottom:4px">Dá acesso a toda loja que tiver esse índex, mesmo sem marcar a loja em si.</div>
+     <div id="usr-index-lista" style="max-height:130px;overflow-y:auto;border:1px solid var(--bord);border-radius:8px;padding:4px 8px"></div>
     </div>
     <div class="fg" id="usr-senha-info" style="display:none;color:var(--txt3);font-size:13px">
      Senha inicial: <b>mudar123</b> (o usuário pode trocar depois de logar).
