@@ -80,6 +80,11 @@ function renderUsuarios() {
 // ══════════════════════════════════════════════════════════════════════
 // MODAL: NOVO / EDITAR
 // ══════════════════════════════════════════════════════════════════════
+function _usrPopulatePerfil() {
+  const sel = document.getElementById('usr-perfil');
+  sel.innerHTML = Object.keys(ROLES).map(k => `<option value="${k}">${ROLES[k].label}</option>`).join('');
+}
+
 // ── Checkbox visual [ ]/[X] — não depende de cor, só de forma/texto ────────
 // (padrão pedido pra não depender de percepção de cor em nenhuma tela).
 function _toggleChk(el) {
