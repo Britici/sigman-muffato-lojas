@@ -69,7 +69,7 @@ h1{font-size:17px;color:#C41230;margin-bottom:2px}
 </style></head><body>
 <div class="header">
   <div class="header-left">
-    <img src="https://www.grupomuffato.com.br/_next/image?url=%2Fimages%2Fgrupo_muffato.png&w=640&q=75" alt="Super Muffato" style="background:transparent">
+    <img src="https://muffatosupermercados.vteximg.com.br/arquivos/muffatosupermercados-favicon-2.ico" alt="Super Muffato" style="background:transparent">
     <div><div style="font-weight:bold;font-size:15px">SUPER MUFFATO</div><div style="font-size:11px;color:#666">Gestão de Manutenção — SIGMAN</div></div>
   </div>
   <div style="text-align:center"><h1>${titulo}</h1><div style="font-size:13px;font-weight:bold;color:#C41230">${item.numero}</div></div>
