@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════════════
    SIGMAN — UTILITÁRIOS
-   Muffato Foods
+   Super Muffato
    ══════════════════════════════════════════════════════════════════ */
 const v = id => { const el = document.getElementById(id); return el ? el.value : ''; };
 const sv = (id, val) => {

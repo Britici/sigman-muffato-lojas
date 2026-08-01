@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════════════
    SIGMAN — USUÁRIOS (aba dedicada, só admin)
-   Muffato Foods
+   Super Muffato
    ══════════════════════════════════════════════════════════════════ */
 
 var usrSort = { col: 'nome', dir: 'asc' };

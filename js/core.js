@@ -1,6 +1,6 @@
 /* ══════════════════════════════════════════════════════════════════
    SIGMAN — Core: Configuração, Estado Global e Camada de API
-   Muffato Foods
+   Super Muffato
    ORDEM DE CARREGAMENTO: este arquivo deve vir ANTES do script
    principal no index.html.
    ══════════════════════════════════════════════════════════════════ */
