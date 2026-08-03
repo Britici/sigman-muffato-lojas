@@ -512,7 +512,7 @@ async function doLogin() {
   }
 
   CU = user;
-  localStorage.setItem('sigman_sess', JSON.stringify({ login, senha, user }));
+  localStorage.setItem('sigvarejo_sess', JSON.stringify({ login, senha, user }));
   enterApp();
 }
 
@@ -550,7 +550,7 @@ async function confirmarTrocaSenha() {
   const u = db.usuarios.find(x => x.login === login);
   if (u) u.senha = p1;
   CU = { ..._pendingLoginUser, senha: p1 };
-  localStorage.setItem('sigman_sess', JSON.stringify({ login, senha: p1, user: CU }));
+  localStorage.setItem('sigvarejo_sess', JSON.stringify({ login, senha: p1, user: CU }));
   _pendingLoginUser = null;
   document.getElementById('lf-troca-senha').style.display = 'none';
   document.getElementById('lf-login').style.display = 'block';
@@ -560,8 +560,8 @@ async function confirmarTrocaSenha() {
 function doLogout() {
   clearInterval(_pollTimer);
   clearInterval(_dashTimer);
-  localStorage.removeItem('sigman_sess');
-  localStorage.removeItem('sigman_lastpage');
+  localStorage.removeItem('sigvarejo_sess');
+  localStorage.removeItem('sigvarejo_lastpage');
   CU = null;
   document.getElementById('app').classList.remove('on');
   document.getElementById('loading-screen').style.display = 'none';
@@ -615,7 +615,7 @@ function enterApp() {
   // Primeiro menu disponível - para PCM vai para planejamento
   const firstMenu = ROLES[CU.tipo].menus[0];
   const defaultPage = firstMenu === 'pcm' ? 'planejamento' : firstMenu;
-  const lastPage = localStorage.getItem('sigman_lastpage');
+  const lastPage = localStorage.getItem('sigvarejo_lastpage');
   const lastPageValida = lastPage && document.querySelector(`[data-page="${lastPage}"]`);
   showPage(lastPageValida ? lastPage : defaultPage);
   updStats();
@@ -730,7 +730,7 @@ function updateNavDots() {
 }
 
 function showPage(pid) {
-  localStorage.setItem('sigman_lastpage', pid);
+  localStorage.setItem('sigvarejo_lastpage', pid);
   document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
   document.querySelectorAll('.nv-item').forEach(n => n.classList.remove('act'));
   document.querySelectorAll('.nv-sub-item').forEach(n => n.classList.remove('act'));
@@ -898,10 +898,10 @@ function toggleTheme() {
   const d = h.getAttribute('data-theme') === 'dark';
   h.setAttribute('data-theme', d ? 'light' : 'dark');
   document.getElementById('th-btn').textContent = d ? '☀️' : '🌙';
-  localStorage.setItem('sigman_theme', d ? 'light' : 'dark');
+  localStorage.setItem('sigvarejo_theme', d ? 'light' : 'dark');
 }
 function loadTheme() {
-  const t = localStorage.getItem('sigman_theme') || 'dark';
+  const t = localStorage.getItem('sigvarejo_theme') || 'dark';
   document.documentElement.setAttribute('data-theme', t);
   const b = document.getElementById('th-btn');
   if (b) b.textContent = t === 'dark' ? '🌙' : '☀️';
