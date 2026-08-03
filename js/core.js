@@ -161,16 +161,16 @@ async function apiPost(body) {
 // Fila de operações que falharam
 function apiQueueFailed(body) {
   try {
-    const fila = JSON.parse(localStorage.getItem('sigman_fila') || '[]');
+    const fila = JSON.parse(localStorage.getItem('sigvarejo_fila') || '[]');
     fila.push({ body, ts: Date.now() });
-    localStorage.setItem('sigman_fila', JSON.stringify(fila));
+    localStorage.setItem('sigvarejo_fila', JSON.stringify(fila));
     showApiStatus('offline');
   } catch(e) {}
 }
 
 async function apiFlushQueue() {
   try {
-    const fila = JSON.parse(localStorage.getItem('sigman_fila') || '[]');
+    const fila = JSON.parse(localStorage.getItem('sigvarejo_fila') || '[]');
     if (!fila.length) return;
     const restante = [];
     for (const item of fila) {
@@ -181,14 +181,14 @@ async function apiFlushQueue() {
       }).then(r => r.json()).catch(() => null);
       if (!res || !res.ok) restante.push(item);
     }
-    localStorage.setItem('sigman_fila', JSON.stringify(restante));
+    localStorage.setItem('sigvarejo_fila', JSON.stringify(restante));
     if (!restante.length) showApiStatus('online');
   } catch(e) {}
 }
 
 // Tenta reenviar fila a cada 30 segundos
 setInterval(async () => {
-  const fila = JSON.parse(localStorage.getItem('sigman_fila') || '[]');
+  const fila = JSON.parse(localStorage.getItem('sigvarejo_fila') || '[]');
   if (fila.length > 0) await apiFlushQueue();
 }, 45000);
 
@@ -265,7 +265,7 @@ async function apiLoadAll(silent = false, force = false) {
   if (!USE_API) return;
   // TTL: só vai ao Sheets se passou mais de CACHE_TTL_MS desde o último readAll
   // force=true é usado após gravações (append/update/delete) para garantir consistência
-  const lastLoad = Number(localStorage.getItem('sigman_last_load') || 0);
+  const lastLoad = Number(localStorage.getItem('sigvarejo_last_load') || 0);
   if (!force && (Date.now() - lastLoad) < CACHE_TTL_MS) {
     if (!silent) console.log('[SIGMAN] Cache válido — readAll ignorado');
     return;
@@ -278,7 +278,7 @@ async function apiLoadAll(silent = false, force = false) {
     }
     return;
   }
-  localStorage.setItem('sigman_last_load', String(Date.now()));
+  localStorage.setItem('sigvarejo_last_load', String(Date.now()));
   const d = json.data;
 
   // Ordens Executadas
@@ -355,7 +355,7 @@ async function apiLoadAll(silent = false, force = false) {
 
   // Usuários — Sheets é a fonte de verdade; Senha_Hash do Sheets é usada diretamente.
   // Se o usuário mudou a senha pelo app, a versão local tem prioridade.
-  const localUsers = JSON.parse(localStorage.getItem('sigman_users') || '[]');
+  const localUsers = JSON.parse(localStorage.getItem('sigvarejo_users') || '[]');
   if (d.usuarios && d.usuarios.length) {
     // Mantém TODOS os usuários (ativos e desativados) — desativar não é excluir.
     // Login continua funcionando normalmente pra quem está ativo.
@@ -415,7 +415,7 @@ async function apiLoadAll(silent = false, force = false) {
 // ── localStorage ───────────────────────────────────────────────────────
 function saveDB() {
   try {
-    localStorage.setItem('sigman_v4', JSON.stringify({
+    localStorage.setItem('sigvarejo_v4', JSON.stringify({
       lojas: db.lojas, lojasTag: db.lojasTag, areas: db.areas,
       ordens: db.ordens, planejadas: db.planejadas,
       solicitacoes: db.solicitacoes,
@@ -428,7 +428,7 @@ function saveDB() {
 
 function loadDB() {
   try {
-    const r = localStorage.getItem('sigman_v4');
+    const r = localStorage.getItem('sigvarejo_v4');
     if (r) Object.assign(db, JSON.parse(r));
   } catch(e) {}
 }

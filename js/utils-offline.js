@@ -25,7 +25,7 @@ async function init() {
   loadTheme();
   loadDB();
 
-  const sess = localStorage.getItem('sigman_sess');
+  const sess = localStorage.getItem('sigvarejo_sess');
   if (sess) {
     try {
       const s = JSON.parse(sess);
@@ -57,7 +57,7 @@ async function init() {
         return;
       }
     } catch(e) {}
-    localStorage.removeItem('sigman_sess');
+    localStorage.removeItem('sigvarejo_sess');
   }
 
   if (USE_API) {
